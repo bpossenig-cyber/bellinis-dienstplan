@@ -1,0 +1,27 @@
+{
+  "name": "Bellinis Dienstplan",
+  "short_name": "Bellinis",
+  "description": "Schichtplaner für Bellinis Restaurant, Sparkassenplatz 2, 6020 Innsbruck",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#eef4f0",
+  "theme_color": "#1a1208",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "business"],
+  "lang": "de-AT",
+  "dir": "ltr"
+}
