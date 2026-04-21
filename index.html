@@ -1116,6 +1116,23 @@
       backdrop-filter: blur(8px);
     }
 
+    .vacation-modal .modal-content { max-width: 900px; }
+    .vacation-modal-body {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+    }
+    .vacation-blocks-list {
+      border-left: 1px solid var(--border);
+      padding-left: 16px;
+    }
+    .calendar-swipe-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      touch-action: pan-y;
+    }
+
     .modal-header {
       padding: 16px;
       border-bottom: 1.5px solid var(--border);
@@ -1313,7 +1330,7 @@
 
       .mobile-shift-tabs {
         display: grid !important;
-        grid-template-columns: 1fr 1fr 1fr !important;
+        grid-template-columns: 1fr 1fr !important;
         gap: 6px;
         margin-bottom: 12px;
         width: 100%;
@@ -1500,6 +1517,25 @@
       .inline-grid-2 { grid-template-columns: 1fr 1fr; gap: 8px; }
       .shift-config-row { grid-template-columns: 1fr; }
       .logo-preview-wrap { grid-template-columns: 1fr; }
+      .vacation-modal .modal-content {
+        width: calc(100vw - 16px);
+        max-width: calc(100vw - 16px);
+        max-height: 92vh;
+      }
+      .vacation-modal-body {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .vacation-blocks-list {
+        border-left: none;
+        border-top: 1px solid var(--border);
+        padding-left: 0;
+        padding-top: 10px;
+      }
+      .calendar-swipe-wrapper {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
     }
 
     /* ── SEHR KLEINES SMARTPHONE (≤380px) ── */
@@ -4225,16 +4261,16 @@
       const holidaySet = getKnownHolidayDateSet();
 
       const modal = document.createElement('div');
-      modal.className = 'modal-overlay';
+      modal.className = 'modal-overlay vacation-modal';
       modal.innerHTML = `
-        <div class="modal-content" style="max-width:900px;">
+        <div class="modal-content">
           <div class="modal-header">
             <h3 style="margin:0;">${title} für ${member.name}</h3>
             <button class="modal-close" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
           </div>
-          <div class="modal-body" style="display:grid; grid-template-columns:2fr 1fr; gap:16px;">
+          <div class="modal-body vacation-modal-body">
             <div class="calendar-wrapper"></div>
-            <div class="blocks-list" style="border-left:1px solid var(--border); padding-left:16px;">
+            <div class="blocks-list vacation-blocks-list">
               <h4 style="margin-top:0; font-size:14px;">Urlaubsblöcke</h4>
               <div class="blocks-container" style="display:grid; gap:8px; max-height:400px; overflow-y:auto;">
                 ${blocks.length === 0 ? '<p style="color:var(--muted); font-size:12px;">Keine Blöcke eingetragen</p>' : 
@@ -4357,7 +4393,7 @@
             <div style="font-weight:600; font-size:14px;" class="month-display"></div>
             <button class="next-month-btn" style="padding:6px 12px; background:#f0f0f0; border:1px solid #ccc; border-radius:4px; cursor:pointer;">Weiter ▶</button>
           </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; touch-action:pan-y;" class="calendar-swipe-wrapper">
+          <div class="calendar-swipe-wrapper">
             <div class="calendar-month" data-month="0"></div>
             <div class="calendar-month" data-month="1"></div>
           </div>
