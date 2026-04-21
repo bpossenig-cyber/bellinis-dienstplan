@@ -443,6 +443,8 @@
       color: var(--text);
     }
     .accordion-body-collapsed { display: none; }
+    .mobile-anchor-title { display: none; }
+    .mobile-anchor-offset { display: none; }
 
     .tab-btn {
       border-radius: 10px;
@@ -1345,6 +1347,20 @@
         z-index: 2200;
       }
       .mobile-header-menu-btn { display: inline-flex; align-items: center; justify-content: center; }
+      .mobile-anchor-title {
+        display: block;
+        font-family: 'Playfair Display', serif !important;
+        font-size: 24px !important;
+        line-height: 1.15;
+        margin: 4px 0 10px 2px;
+        color: var(--text);
+      }
+      .mobile-anchor-offset {
+        display: block;
+        height: 0;
+        margin: 0;
+        padding: 0;
+      }
       .tabs {
         display: grid !important;
         grid-template-columns: 1fr !important;
@@ -1617,7 +1633,7 @@
       <button id="headerBurgerBtn" class="dark mobile-header-menu-btn" type="button" aria-expanded="false">☰</button>
     </div>
     <div id="headerBurgerMenu" class="mobile-header-dropdown">
-      <a class="menu-action-btn" data-nav-tab="plan" href="#tab-plan">📅 Wochenplan</a>
+      <a class="menu-action-btn" data-nav-tab="plan" href="#anchor-plan-mobile">📅 Wochenplan</a>
       <a class="menu-action-btn" data-nav-tab="shifts" href="#tab-shifts">🛠 Schichten</a>
       <a class="menu-action-btn" data-nav-tab="staff" href="#tab-staff">👥 Mitarbeiter</a>
       <a class="menu-action-btn" data-nav-tab="stats" href="#tab-stats">📊 Auswertung</a>
@@ -1702,6 +1718,7 @@
 
         <!-- Plan tab -->
         <div id="tab-plan" class="tab-panel active">
+          <h1 id="anchor-plan-mobile" class="mobile-anchor-title">📅 Wochenplan</h1>
           <div class="schedule-wrap">
             <table id="scheduleTable">
               <thead>
@@ -1723,6 +1740,7 @@
 
         <!-- Shifts tab -->
         <div id="tab-shifts" class="tab-panel">
+          <div id="anchor-shifts-mobile" class="mobile-anchor-offset" aria-hidden="true"></div>
           <section class="card" style="box-shadow:none; border-color:var(--accent-mid); margin-bottom:12px;">
             <div class="card-content">
               <div class="section-title" style="font-size:15px;">🛠 Schichten verwalten</div>
@@ -2291,12 +2309,27 @@
 
     function switchTabAndJumpToPanel(tabKey) {
       switchMainTab(tabKey);
-      const panel = document.getElementById(`tab-${tabKey}`);
-      if (panel) {
-        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        try {
-          history.replaceState(null, '', `#tab-${tabKey}`);
-        } catch (_) {}
+      const anchorTargetByTab = {
+        plan: 'anchor-plan-mobile',
+        shifts: 'anchor-shifts-mobile',
+      };
+      const targetId = anchorTargetByTab[tabKey] || `tab-${tabKey}`;
+      const targetEl = document.getElementById(targetId) || document.getElementById(`tab-${tabKey}`);
+      if (targetEl) {
+        window.requestAnimationFrame(() => {
+          const isMobile = window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
+          const headerEl = isMobile ? document.querySelector('.header-bar') : null;
+          const headerHeight = headerEl ? Math.round(headerEl.getBoundingClientRect().height) : 0;
+          const targetTop = targetEl.getBoundingClientRect().top + window.scrollY;
+          const mobileTopGap = 8;
+          const adjustedTop = isMobile
+            ? Math.max(0, targetTop - Math.max(0, headerHeight + mobileTopGap))
+            : targetTop;
+          window.scrollTo({ top: adjustedTop, behavior: 'smooth' });
+          try {
+            history.replaceState(null, '', `#${targetId}`);
+          } catch (_) {}
+        });
       }
     }
 
@@ -5594,9 +5627,9 @@
         headerBurgerMenu.querySelectorAll('[data-nav-tab]').forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.preventDefault();
-            switchTabAndJumpToPanel(btn.dataset.navTab);
             state.headerBurgerOpen = false;
             applyHeaderBurgerMenuState();
+            window.requestAnimationFrame(() => switchTabAndJumpToPanel(btn.dataset.navTab));
           });
         });
         headerBurgerMenu.querySelectorAll('[data-nav-action]').forEach(btn => {
