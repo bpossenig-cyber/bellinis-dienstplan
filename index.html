@@ -143,6 +143,7 @@
 
     /* Header Bar */
     .header-bar {
+      position: relative;
       background: var(--header-grad);
       border: 1px solid var(--header-border);
       border-radius: var(--radius);
@@ -409,6 +410,36 @@
       border-bottom-color: var(--tabs-border);
       align-items: center;
     }
+    .mobile-menu-toggle { display: none !important; }
+    .mobile-header-menu-btn {
+      display: none;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      min-height: 36px !important;
+      width: 44px;
+      padding: 0 !important;
+      border-radius: 10px;
+      z-index: 3;
+    }
+    .mobile-header-dropdown {
+      display: none;
+      margin-top: 8px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      background: var(--card-grad);
+      box-shadow: var(--shadow-soft);
+      gap: 6px;
+    }
+    .mobile-header-dropdown.open { display: grid; }
+    .mobile-header-dropdown .menu-action-btn {
+      width: 100%;
+      text-align: left;
+      font-size: 14px !important;
+      padding: 9px 10px;
+    }
+    .accordion-body-collapsed { display: none; }
 
     .tab-btn {
       border-radius: 10px;
@@ -843,6 +874,14 @@
     /* Inline grid */
     .inline-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .inline-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    .holiday-settings-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 10px;
+    }
+    .holiday-settings-controls button { width: 100%; }
 
     /* Auto info */
     #autoInfo {
@@ -1297,6 +1336,12 @@
       .meta-row { grid-template-columns: 1fr; gap: 8px; }
 
       /* Main Tabs — 1 Spalte auf Mobile */
+      .header-bar {
+        position: sticky;
+        top: 8px;
+        z-index: 2200;
+      }
+      .mobile-header-menu-btn { display: inline-flex; align-items: center; justify-content: center; }
       .tabs {
         display: grid !important;
         grid-template-columns: 1fr !important;
@@ -1515,6 +1560,7 @@
       button { padding: 9px 13px; font-size: 16.9px; }
       .small { font-size: 21.2px; }
       .inline-grid-2 { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .holiday-settings-controls { grid-template-columns: 1fr; }
       .shift-config-row { grid-template-columns: 1fr; }
       .logo-preview-wrap { grid-template-columns: 1fr; }
       .print-only {
@@ -1565,6 +1611,17 @@
         <div class="small">Aktuelle Zeit</div>
         <div id="currentDateTime"></div>
       </div>
+      <button id="headerBurgerBtn" class="dark mobile-header-menu-btn" type="button" aria-expanded="false">☰</button>
+    </div>
+    <div id="headerBurgerMenu" class="mobile-header-dropdown">
+      <button type="button" class="menu-action-btn" data-nav-tab="plan">📅 Wochenplan</button>
+      <button type="button" class="menu-action-btn" data-nav-tab="shifts">🛠 Schichten</button>
+      <button type="button" class="menu-action-btn" data-nav-tab="staff">👥 Mitarbeiter</button>
+      <button type="button" class="menu-action-btn" data-nav-tab="stats">📊 Auswertung</button>
+      <button type="button" class="menu-action-btn" data-nav-tab="archive">🗂 Archiv</button>
+      <button type="button" class="menu-action-btn" data-nav-action="auto">⚡ Auto-Plan erzeugen</button>
+      <button type="button" class="menu-action-btn" data-nav-action="save">💾 Speichern</button>
+      <button type="button" class="menu-action-btn" data-nav-action="settings">⚙️ Einstellungen</button>
     </div>
 
     <!-- Top: Week strip + Actions -->
@@ -1629,8 +1686,9 @@
     <section class="card">
       <div class="card-content">
         <div class="print-only" style="margin-bottom:14px; font-weight:700; white-space:nowrap;">Verwaltung</div>
-        <div class="tabs">
+        <div class="tabs" id="mainTabs">
           <button class="tab-btn active" data-tab="plan">📅 Wochenplan</button>
+          <button class="tab-btn" data-tab="shifts">🛠 Schichten</button>
           <button class="tab-btn" data-tab="staff">👥 Mitarbeiter</button>
           <button class="tab-btn" data-tab="stats">📊 Auswertung</button>
           <button class="tab-btn" data-tab="archive">🗂 Archiv</button>
@@ -1641,13 +1699,6 @@
 
         <!-- Plan tab -->
         <div id="tab-plan" class="tab-panel active">
-          <section class="card" style="box-shadow:none; border-color:var(--accent-mid); margin-bottom:12px;">
-            <div class="card-content">
-              <div class="section-title" style="font-size:15px;">🛠 Schichten verwalten</div>
-              <div id="shiftConfigList" class="check-list"></div>
-              <button id="addShiftBtn" style="margin-top:8px; width:100%;">＋ Schicht hinzufügen</button>
-            </div>
-          </section>
           <div class="schedule-wrap">
             <table id="scheduleTable">
               <thead>
@@ -1667,57 +1718,61 @@
           </div>
         </div>
 
+        <!-- Shifts tab -->
+        <div id="tab-shifts" class="tab-panel">
+          <section class="card" style="box-shadow:none; border-color:var(--accent-mid); margin-bottom:12px;">
+            <div class="card-content">
+              <div class="section-title" style="font-size:15px;">🛠 Schichten verwalten</div>
+              <div id="shiftConfigList" class="check-list"></div>
+              <button id="addShiftBtn" style="margin-top:8px; width:100%;">＋ Schicht hinzufügen</button>
+            </div>
+          </section>
+        </div>
+
         <!-- Staff tab -->
         <div id="tab-staff" class="tab-panel">
           <div class="status-grid">
             <section class="card" style="box-shadow:none; border-color:var(--warn-border);">
               <div class="card-content">
-                <div class="section-title" style="font-size:15px;">🌴 Urlaub</div>
-                <div id="urlaubList" class="check-list"></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                  <div class="section-title" style="font-size:15px; margin-bottom:0;">🌴 Urlaub</div>
+                  <button id="urlaubAccordionToggle" type="button" style="padding:6px 10px; font-size:12px;">▾</button>
+                </div>
+                <div id="urlaubAccordionBody" style="margin-top:10px;">
+                  <div id="urlaubList" class="check-list"></div>
+                </div>
               </div>
             </section>
             <section class="card" style="box-shadow:none; border-color:#fca5a5;">
               <div class="card-content">
-                <div class="section-title" style="font-size:15px;">🤒 Krankenstand</div>
-                <div id="krankList" class="check-list"></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                  <div class="section-title" style="font-size:15px; margin-bottom:0;">🤒 Krankenstand</div>
+                  <button id="krankAccordionToggle" type="button" style="padding:6px 10px; font-size:12px;">▾</button>
+                </div>
+                <div id="krankAccordionBody" style="margin-top:10px;">
+                  <div id="krankList" class="check-list"></div>
+                </div>
               </div>
             </section>
             <section class="card" style="box-shadow:none; border-color:var(--accent-mid);">
               <div class="card-content">
                 <div class="section-title" style="font-size:15px;">🎉 Feiertage</div>
-                <div class="inline-grid-2" style="margin-bottom:10px; align-items:end;">
+                <div class="holiday-settings-controls">
                   <div>
                     <label for="holidayCountrySelect">Land</label>
                     <select id="holidayCountrySelect"></select>
                   </div>
                   <div>
-                    <label style="opacity:0;">.</label>
-                    <button id="fetchHolidaysBtn" style="width:100%;">🌐 Feiertage laden</button>
-                  </div>
-                </div>
-                <div class="inline-grid-2" style="margin-bottom:10px; align-items:end;">
-                  <div>
-                    <label for="holidayDateInput">Datum</label>
-                    <input id="holidayDateInput" type="date" />
+                    <label for="holidayYearInput">Jahr</label>
+                    <input id="holidayYearInput" type="number" min="2000" max="2100" />
                   </div>
                   <div>
                     <label style="opacity:0;">.</label>
-                    <button id="addHolidayBtn" style="width:100%;">+ Feiertag hinzufügen</button>
+                    <button id="fetchYearHolidaysBtn">📋 Feiertage anzeigen</button>
                   </div>
                 </div>
-                <div id="holidayFetchInfo" class="small muted" style="margin-bottom:10px;">Lädt offizielle Feiertage für die aktuell gewählte Woche.</div>
                 <div id="holidayList" class="check-list"></div>
                 <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
-                  <div class="inline-grid-2" style="margin-bottom:10px; align-items:end;">
-                    <div>
-                      <label for="holidayYearInput">Jahr</label>
-                      <input id="holidayYearInput" type="number" min="2000" max="2100" />
-                    </div>
-                    <div>
-                      <label style="opacity:0;">.</label>
-                      <button id="fetchYearHolidaysBtn" style="width:100%;">📋 Feiertage fürs Jahr anzeigen</button>
-                    </div>
-                  </div>
                   <div id="holidayYearInfo" class="small muted" style="margin-bottom:10px;">Zeigt alle offiziellen Feiertage des gewählten Landes im ausgewählten Jahr.</div>
                   <div id="holidayYearList" class="check-list"></div>
                 </div>
@@ -2035,6 +2090,10 @@
       holidayYearEntries: [],
       autosaveLock: false,
       lastPdfBlob: null,
+      mobileMenuOpen: false,
+      urlaubAccordionOpen: false,
+      krankAccordionOpen: false,
+      headerBurgerOpen: false,
     };
     let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP_SETTINGS));
     let pendingLogoBase64 = '';
@@ -2202,6 +2261,50 @@
         input.checked = false;
         input.parentElement.classList.remove('active-rule');
       });
+    }
+
+    function applyAccordionState(bodyId, toggleId, isOpen) {
+      const body = document.getElementById(bodyId);
+      const toggle = document.getElementById(toggleId);
+      if (!body || !toggle) return;
+      body.classList.toggle('accordion-body-collapsed', !isOpen);
+      toggle.textContent = isOpen ? '▾' : '▸';
+      toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    }
+
+    function renderStaffAccordions() {
+      applyAccordionState('urlaubAccordionBody', 'urlaubAccordionToggle', !!state.urlaubAccordionOpen);
+      applyAccordionState('krankAccordionBody', 'krankAccordionToggle', !!state.krankAccordionOpen);
+    }
+
+    function switchMainTab(tabKey) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabKey);
+      });
+      document.querySelectorAll('.tab-panel').forEach(panel => {
+        panel.classList.toggle('active', panel.id === `tab-${tabKey}`);
+      });
+    }
+
+    function applyMobileMenuState() {
+      const tabs = document.getElementById('mainTabs');
+      if (!tabs) return;
+      tabs.classList.remove('mobile-collapsed');
+    }
+
+    function applyHeaderBurgerMenuState() {
+      const burgerBtn = document.getElementById('headerBurgerBtn');
+      const menu = document.getElementById('headerBurgerMenu');
+      if (!burgerBtn || !menu) return;
+      const isMobile = window.matchMedia('(max-width: 640px)').matches;
+      if (!isMobile) {
+        state.headerBurgerOpen = false;
+        burgerBtn.setAttribute('aria-expanded', 'false');
+        menu.classList.remove('open');
+        return;
+      }
+      menu.classList.toggle('open', !!state.headerBurgerOpen);
+      burgerBtn.setAttribute('aria-expanded', state.headerBurgerOpen ? 'true' : 'false');
     }
 
     function normalizeAppSettings(raw) {
@@ -4275,22 +4378,12 @@
           <div class="modal-body vacation-modal-body">
             <div class="calendar-wrapper"></div>
             <div class="blocks-list vacation-blocks-list">
-              <h4 style="margin-top:0; font-size:14px;">Urlaubsblöcke</h4>
-              <div class="blocks-container" style="display:grid; gap:8px; max-height:400px; overflow-y:auto;">
-                ${blocks.length === 0 ? '<p style="color:var(--muted); font-size:12px;">Keine Blöcke eingetragen</p>' : 
-                  blocks.map((block, idx) => `
-                    <div class="block-item" data-index="${idx}" style="padding:8px 10px; border:1.5px solid; border-radius:6px; ${blockStyle} cursor:pointer; transition:all 0.15s;">
-                      <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="font-weight:600; flex:1;">${idx + 1}. Block</div>
-                        <button class="remove-block-btn" data-index="${idx}" style="padding:2px 6px; background:rgba(220,38,38,0.9); color:#fff; border:none; border-radius:3px; cursor:pointer; font-size:11px;">✕</button>
-                      </div>
-                      <div style="font-size:13px; margin-top:4px;">${block.days} Tage</div>
-                      <div style="font-size:11px; color:rgba(0,0,0,0.6); margin-top:2px;">${block.startDate} bis ${block.endDate}</div>
-                    </div>
-                  `).join('')
-                }
+              <h4 style="margin-top:0; font-size:14px;">${type === 'urlaub' ? 'Urlaubsblöcke' : 'Krankenstandsblöcke'}</h4>
+              <div class="blocks-container" style="display:grid; gap:8px; max-height:400px; overflow-y:auto;"></div>
+              <div style="display:grid; gap:8px; margin-top:12px;">
+                <button type="button" class="save-block-btn" style="width:100%; padding:10px; background:var(--accent); color:#fff; border:none; border-radius:6px; font-weight:700; cursor:pointer; font-size:12px;">💾 Änderungen speichern</button>
+                <button type="button" class="reset-selection-btn" style="width:100%; padding:10px; background:var(--accent-soft); color:var(--text); border:1px solid var(--border); border-radius:6px; font-weight:600; cursor:pointer; font-size:12px;">↺ Auswahl zurücksetzen</button>
               </div>
-              <button class="add-block-btn" style="width:100%; margin-top:12px; padding:10px; background:var(--accent); color:#fff; border:none; border-radius:6px; font-weight:600; cursor:pointer; font-size:12px;">+ Neuer Block</button>
             </div>
           </div>
         </div>
@@ -4300,55 +4393,78 @@
 
       // Render calendar for first block or new block
       const calendarWrapper = modal.querySelector('.calendar-wrapper');
-      let currentSelection = { startDate: null, endDate: null, days: 0, selectedDates: [], editingIndex: null };
+      const blocksContainer = modal.querySelector('.blocks-container');
+      let currentSelection = { startDate: null, endDate: null, days: 0, selectedDates: [], editingIndex: null, lastSelectedDate: null };
       let currentMonthOffset = 0;
       
       function renderCalendar() {
         renderBlockCalendar(calendarWrapper, type, currentSelection, currentMonthOffset);
       }
-      
+
+      const selectBlock = (idx) => {
+        const block = blocks[idx];
+        if (!block) return;
+        const normalizedDates = getBlockDates(block);
+        currentSelection = {
+          startDate: normalizedDates[0] || block.startDate,
+          endDate: normalizedDates[normalizedDates.length - 1] || block.endDate,
+          days: normalizedDates.length || block.days,
+          selectedDates: normalizedDates,
+          editingIndex: idx,
+          lastSelectedDate: normalizedDates[normalizedDates.length - 1] || null
+        };
+        const startDate = new Date(block.startDate);
+        currentMonthOffset = (startDate.getFullYear() - new Date().getFullYear()) * 12 + startDate.getMonth() - new Date().getMonth();
+        renderCalendar();
+      };
+
+      const renderBlocksPanel = () => {
+        blocksContainer.innerHTML = blocks.length === 0
+          ? '<p style="color:var(--muted); font-size:12px;">Keine Blöcke eingetragen</p>'
+          : blocks.map((block, idx) => `
+              <div class="block-item" data-index="${idx}" style="padding:8px 10px; border:1.5px solid; border-radius:6px; ${blockStyle} cursor:pointer; transition:all 0.15s;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <div style="font-weight:600; flex:1;">${idx + 1}. Block</div>
+                  <button type="button" class="remove-block-btn" data-index="${idx}" style="padding:2px 6px; background:rgba(220,38,38,0.9); color:#fff; border:none; border-radius:3px; cursor:pointer; font-size:11px;">✕</button>
+                </div>
+                <div style="font-size:13px; margin-top:4px;">${block.days} Tage</div>
+                <div style="font-size:11px; color:rgba(0,0,0,0.6); margin-top:2px;">${block.startDate} bis ${block.endDate}</div>
+              </div>
+            `).join('');
+
+        blocksContainer.querySelectorAll('.block-item').forEach(item => {
+          item.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-block-btn')) return;
+            const idx = Number(item.dataset.index);
+            if (Number.isNaN(idx)) return;
+            selectBlock(idx);
+          });
+        });
+
+        blocksContainer.querySelectorAll('.remove-block-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const idx = Number(btn.dataset.index);
+            if (Number.isNaN(idx) || !blocks[idx]) return;
+            blocks.splice(idx, 1);
+            if (currentSelection.editingIndex === idx) {
+              currentSelection = { startDate: null, endDate: null, days: 0, selectedDates: [], editingIndex: null, lastSelectedDate: null };
+            } else if (currentSelection.editingIndex !== null && currentSelection.editingIndex > idx) {
+              currentSelection.editingIndex -= 1;
+            }
+            autosave();
+            render();
+            renderBlocksPanel();
+            renderCalendar();
+          });
+        });
+      };
+
+      renderBlocksPanel();
       renderCalendar();
 
-      // Block click - edit block
-      modal.querySelectorAll('.block-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-          if (e.target.classList.contains('remove-block-btn')) return;
-          
-          const idx = Number(item.dataset.index);
-          const block = blocks[idx];
-
-          const normalizedDates = getBlockDates(block);
-          
-          currentSelection = {
-            startDate: normalizedDates[0] || block.startDate,
-            endDate: normalizedDates[normalizedDates.length - 1] || block.endDate,
-            days: normalizedDates.length || block.days,
-            selectedDates: normalizedDates,
-            editingIndex: idx
-          };
-          
-          // Navigate to the month of the block
-          const startDate = new Date(block.startDate);
-          currentMonthOffset = (startDate.getFullYear() - new Date().getFullYear()) * 12 + startDate.getMonth() - new Date().getMonth();
-          
-          renderCalendar();
-        });
-      });
-
-      // Remove block button
-      modal.querySelectorAll('.remove-block-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const idx = Number(btn.dataset.index);
-          blocks.splice(idx, 1);
-          autosave();
-          openVacationBlockModal(member, type);
-          modal.remove();
-        });
-      });
-
-      // Add new block button
-      modal.querySelector('.add-block-btn').addEventListener('click', () => {
+      function saveCurrentSelection() {
         const finalDates = currentSelection.selectedDates;
         if (finalDates.length > 0) {
           if (currentSelection.editingIndex !== null) {
@@ -4367,13 +4483,21 @@
               days: finalDates.length,
               dates: [...finalDates]
             });
+            currentSelection.editingIndex = blocks.length - 1;
           }
           autosave();
-          openVacationBlockModal(member, type);
-          modal.remove();
+          render();
+          renderBlocksPanel();
+          renderCalendar();
         } else {
           alert('Bitte mindestens einen Tag auswählen');
         }
+      }
+
+      modal.querySelector('.save-block-btn').addEventListener('click', saveCurrentSelection);
+      modal.querySelector('.reset-selection-btn').addEventListener('click', () => {
+        currentSelection = { startDate: null, endDate: null, days: 0, selectedDates: [], editingIndex: null, lastSelectedDate: null };
+        renderCalendar();
       });
 
       // Close button
@@ -4402,9 +4526,12 @@
             <div class="calendar-month" data-month="1"></div>
           </div>
           <div style="margin-top:12px; padding:10px; background:var(--cream); border-radius:6px; text-align:center;">
-            <div style="font-size:12px; color:var(--muted);">Gesamt Urlaub</div>
+            <div style="font-size:12px; color:var(--muted);">${type === 'urlaub' ? 'Gesamt Urlaub' : 'Gesamt Tage'}</div>
             <div style="font-size:24px; font-weight:700; color:var(--text);" class="days-count">${selection.days}</div>
             <div style="font-size:11px; color:var(--muted);">Tage</div>
+          </div>
+          <div style="margin-top:8px; font-size:11px; color:var(--muted); text-align:center;">
+            Desktop: Shift + Klick für Bereichsauswahl · Mobile: mit einem Finger über Tage wischen.
           </div>
         </div>
       `;
@@ -4433,21 +4560,33 @@
       const month2 = (currentMonth + 1) % 12;
       container.querySelector('.month-display').textContent = `${monthNames[month1]} - ${monthNames[month2]} ${currentYear}`;
 
-      // Swipe support
+      // Swipe support (left/right to switch months)
       let touchStartX = 0;
+      let touchStartY = 0;
+      let swipeStartedOnDay = false;
       const swipeWrapper = container.querySelector('.calendar-swipe-wrapper');
 
       swipeWrapper.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
+        const touch = e.changedTouches[0];
+        touchStartX = touch.screenX;
+        touchStartY = touch.screenY;
+        const target = e.target instanceof Element ? e.target : null;
+        swipeStartedOnDay = !!target?.closest('.block-day');
       }, false);
 
       swipeWrapper.addEventListener('touchend', (e) => {
-        const touchEndX = e.changedTouches[0].screenX;
-        if (touchStartX - touchEndX > 50) {
+        const touch = e.changedTouches[0];
+        const touchEndX = touch.screenX;
+        const touchEndY = touch.screenY;
+        if (swipeStartedOnDay) return;
+        const deltaX = touchEndX - touchStartX;
+        const deltaY = touchEndY - touchStartY;
+        if (Math.abs(deltaX) < 45 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+        if (deltaX < 0) {
           // Swipe left → next month
           monthOffset++;
           renderBlockCalendar(container, type, selection, monthOffset);
-        } else if (touchEndX - touchStartX > 50) {
+        } else {
           // Swipe right → prev month
           monthOffset--;
           renderBlockCalendar(container, type, selection, monthOffset);
@@ -4503,46 +4642,129 @@
       html += '</div></div>';
       container.innerHTML = html;
 
-      // Click handler for individual days
-      container.querySelectorAll('.block-day').forEach(btn => {
-        btn.addEventListener('click', () => {
+      const dayButtons = [...container.querySelectorAll('.block-day')];
+      const dayByDate = Object.fromEntries(dayButtons.map(btn => [btn.dataset.date, btn]));
+
+      const setDayVisual = (btn, isSelected, isHoliday) => {
+        if (!btn) return;
+        if (isSelected) {
+          btn.style.background = 'var(--accent)';
+          btn.style.color = '#fff';
+          btn.style.border = '2px solid var(--accent)';
+          return;
+        }
+        if (isHoliday) {
+          btn.style.background = 'var(--holiday-note-bg)';
+          btn.style.color = 'var(--holiday-note-muted-text)';
+          btn.style.border = '1px solid var(--holiday-head-border)';
+          return;
+        }
+        btn.style.background = '#fff';
+        btn.style.color = 'var(--text)';
+        btn.style.border = '1px solid var(--border)';
+      };
+
+      const refreshSelectionMeta = () => {
+        if (!selection.selectedDates) selection.selectedDates = [];
+        selection.selectedDates = [...new Set(selection.selectedDates)].sort();
+        selection.days = selection.selectedDates.length;
+        const counter = document.querySelector('.days-count');
+        if (counter) counter.textContent = selection.days;
+        if (selection.selectedDates.length > 0) {
+          selection.startDate = selection.selectedDates[0];
+          selection.endDate = selection.selectedDates[selection.selectedDates.length - 1];
+        } else {
+          selection.startDate = null;
+          selection.endDate = null;
+        }
+      };
+
+      const applyDaySelection = (dateStr, mode = 'toggle', options = {}) => {
+        if (!dateStr) return false;
+        if (!selection.selectedDates) selection.selectedDates = [];
+        const btn = dayByDate[dateStr];
+        const isHoliday = btn?.dataset.holiday === '1';
+        const idx = selection.selectedDates.indexOf(dateStr);
+        let shouldAdd = mode === 'add' ? true : mode === 'remove' ? false : idx === -1;
+        if (shouldAdd && idx === -1 && type === 'urlaub' && isHoliday && !options.skipHolidayConfirm) {
+          const proceed = confirm('Feiertag erkannt. Möchtest du diesen Tag trotzdem als Urlaubstag auswählen?');
+          if (!proceed) return false;
+        }
+        if (shouldAdd && idx === -1) {
+          selection.selectedDates.push(dateStr);
+        }
+        if (!shouldAdd && idx > -1) {
+          selection.selectedDates.splice(idx, 1);
+        }
+        refreshSelectionMeta();
+        setDayVisual(btn, selection.selectedDates.includes(dateStr), isHoliday);
+        return true;
+      };
+
+      dayButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
           const dateStr = btn.dataset.date;
-          const isHoliday = btn.dataset.holiday === '1';
-          if (type === 'urlaub' && isHoliday) {
-            const proceed = confirm('Feiertag erkannt. Möchtest du diesen Tag trotzdem als Urlaubstag auswählen?');
-            if (!proceed) return;
-          }
-          
-          if (!selection.selectedDates) selection.selectedDates = [];
-          const idx = selection.selectedDates.indexOf(dateStr);
-          
-          if (idx > -1) {
-            // Remove
-            selection.selectedDates.splice(idx, 1);
-            btn.style.background = '#fff';
-            btn.style.color = 'var(--text)';
-            btn.style.border = '1px solid var(--border)';
+          if (e.shiftKey && selection.lastSelectedDate && selection.lastSelectedDate !== dateStr) {
+            const start = new Date(`${selection.lastSelectedDate}T12:00:00`);
+            const end = new Date(`${dateStr}T12:00:00`);
+            const [from, to] = start <= end ? [start, end] : [end, start];
+            Object.keys(dayByDate).forEach(dayDate => {
+              const current = new Date(`${dayDate}T12:00:00`);
+              if (current >= from && current <= to) {
+                applyDaySelection(dayDate, 'add');
+              }
+            });
           } else {
-            // Add
-            selection.selectedDates.push(dateStr);
-            selection.selectedDates.sort();
-            btn.style.background = 'var(--accent)';
-            btn.style.color = '#fff';
-            btn.style.border = '2px solid var(--accent)';
+            applyDaySelection(dateStr, 'toggle');
           }
-          
-          // Update count
-          selection.days = selection.selectedDates.length;
-          const counter = document.querySelector('.days-count');
-          if (counter) counter.textContent = selection.days;
-          
-          // Update dates for save
-          if (selection.selectedDates.length > 0) {
-            selection.startDate = selection.selectedDates[0];
-            selection.endDate = selection.selectedDates[selection.selectedDates.length - 1];
-          }
+          selection.lastSelectedDate = dateStr;
         });
       });
+
+      // Mobile gesture: drag over days to add/remove continuously.
+      let dragActive = false;
+      let dragMode = 'add';
+      const dragTouched = new Set();
+      const startDrag = (targetBtn) => {
+        const dateStr = targetBtn?.dataset?.date;
+        if (!dateStr) return;
+        dragActive = true;
+        dragTouched.clear();
+        dragMode = selection.selectedDates?.includes(dateStr) ? 'remove' : 'add';
+        applyDaySelection(dateStr, dragMode, { skipHolidayConfirm: true });
+        dragTouched.add(dateStr);
+        selection.lastSelectedDate = dateStr;
+      };
+      const dragOver = (x, y) => {
+        if (!dragActive) return;
+        const hit = document.elementFromPoint(x, y);
+        const btn = hit && hit.closest ? hit.closest('.block-day') : null;
+        if (!btn) return;
+        const dateStr = btn.dataset.date;
+        if (!dateStr || dragTouched.has(dateStr)) return;
+        applyDaySelection(dateStr, dragMode, { skipHolidayConfirm: true });
+        dragTouched.add(dateStr);
+        selection.lastSelectedDate = dateStr;
+      };
+      const stopDrag = () => {
+        dragActive = false;
+        dragTouched.clear();
+      };
+
+      dayButtons.forEach(btn => {
+        btn.addEventListener('touchstart', (e) => {
+          if (!e.touches?.length) return;
+          startDrag(btn);
+        }, { passive: true });
+      });
+      container.addEventListener('touchmove', (e) => {
+        if (!dragActive || !e.touches?.length) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        dragOver(touch.clientX, touch.clientY);
+      }, { passive: false });
+      container.addEventListener('touchend', stopDrag, { passive: true });
+      container.addEventListener('touchcancel', stopDrag, { passive: true });
     }
 
     function renderStaff() {
@@ -5072,8 +5294,10 @@
       renderShiftConfig();
       renderSchedule();
       renderStaff();
+      renderStaffAccordions();
       renderStatsWeekList();
       renderArchive();
+      applyMobileMenuState();
     }
 
     function updateCurrentDateTime() {
@@ -5343,6 +5567,59 @@
       document.getElementById('rangePdfBtn').addEventListener('click', exportRangePdf);
 
       renderNewStaffShiftRestrictions();
+      const headerBurgerBtn = document.getElementById('headerBurgerBtn');
+      const headerBurgerMenu = document.getElementById('headerBurgerMenu');
+      if (headerBurgerBtn) {
+        headerBurgerBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          state.headerBurgerOpen = !state.headerBurgerOpen;
+          applyHeaderBurgerMenuState();
+        });
+      }
+      if (headerBurgerMenu) {
+        headerBurgerMenu.querySelectorAll('[data-nav-tab]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            switchMainTab(btn.dataset.navTab);
+            state.headerBurgerOpen = false;
+            applyHeaderBurgerMenuState();
+          });
+        });
+        headerBurgerMenu.querySelectorAll('[data-nav-action]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const action = btn.dataset.navAction;
+            if (action === 'auto') document.getElementById('autoBtn')?.click();
+            if (action === 'save') document.getElementById('saveBtn')?.click();
+            if (action === 'settings') document.getElementById('settingsBtn')?.click();
+            state.headerBurgerOpen = false;
+            applyHeaderBurgerMenuState();
+          });
+        });
+      }
+      document.addEventListener('click', (e) => {
+        if (!state.headerBurgerOpen) return;
+        const target = e.target;
+        if (!(target instanceof Element)) return;
+        const inMenu = target.closest('#headerBurgerMenu');
+        const inBtn = target.closest('#headerBurgerBtn');
+        if (!inMenu && !inBtn) {
+          state.headerBurgerOpen = false;
+          applyHeaderBurgerMenuState();
+        }
+      });
+      const urlaubAccordionToggle = document.getElementById('urlaubAccordionToggle');
+      if (urlaubAccordionToggle) {
+        urlaubAccordionToggle.addEventListener('click', () => {
+          state.urlaubAccordionOpen = !state.urlaubAccordionOpen;
+          renderStaffAccordions();
+        });
+      }
+      const krankAccordionToggle = document.getElementById('krankAccordionToggle');
+      if (krankAccordionToggle) {
+        krankAccordionToggle.addEventListener('click', () => {
+          state.krankAccordionOpen = !state.krankAccordionOpen;
+          renderStaffAccordions();
+        });
+      }
       document.querySelectorAll('#newBlockedDays .day-block-btn input').forEach(el => {
         el.addEventListener('change', (e) => {
           el.parentElement.classList.toggle('blocked', e.target.checked);
@@ -5351,12 +5628,17 @@
 
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-          document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-          btn.classList.add('active');
-          document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+          switchMainTab(btn.dataset.tab);
+          state.headerBurgerOpen = false;
+          applyHeaderBurgerMenuState();
         });
       });
+      window.addEventListener('resize', () => {
+        applyMobileMenuState();
+        applyHeaderBurgerMenuState();
+      });
+      applyMobileMenuState();
+      applyHeaderBurgerMenuState();
       setInterval(updateCurrentDateTime, 30000);
     }
 
