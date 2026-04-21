@@ -365,7 +365,7 @@
       margin-bottom: 14px;
     }
 
-    .muted { color: var(--muted); }
+    .muted { color: var(--muted); opacity: 0.95; }
     .small { font-size: 16.3px; }
 
     /* Week strip */
@@ -414,10 +414,10 @@
       border-radius: 10px;
       padding: 8px 16px;
       font-size: 16.3px;
-      font-weight: 600;
+      font-weight: 700;
       border-color: transparent;
       background: var(--tab-grad);
-      color: var(--muted);
+      color: var(--text);
     }
 
     .tab-btn:hover {
@@ -1310,6 +1310,7 @@
         padding: 9px 10px;
         font-size: 16.2px;
         width: 100%;
+        display: block;
         text-align: center;
       }
       #autoBtn, #saveBtn, #settingsBtn {
@@ -1317,6 +1318,7 @@
         font-size: 16.9px;
         padding: 9px 10px;
         grid-column: span 1;
+        width: 100%;
       }
       #saveBtn { margin-left: 0 !important; }
       #settingsBtn { grid-column: span 1; margin-left: 0 !important; }
@@ -2308,8 +2310,8 @@
       const accentDeeper = mixHex(accent, '#000000', 0.36);
       const darkTone = mixHex(accent, '#111827', 0.78);
       const darkTone2 = mixHex(accent, '#0b1220', 0.86);
-      const muted = ensureContrast(mixHex(mainText, bg, 0.2), bg, 4.8);
-      const placeholder = ensureContrast(mixHex(mainText, card, 0.34), card, 4.5);
+      const muted = ensureContrast(mixHex(mainText, bg, 0.14), bg, 6.2);
+      const placeholder = ensureContrast(mixHex(mainText, card, 0.28), card, 5.6);
       const cream = mixHex(card, accentSoft, 0.26);
       const tableHeaderStart = mixHex(accent, '#0f172a', 0.72);
       const tableHeaderEnd = mixHex(accent, '#111827', 0.82);
