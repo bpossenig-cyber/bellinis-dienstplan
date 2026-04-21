@@ -1296,10 +1296,10 @@
       /* Meta */
       .meta-row { grid-template-columns: 1fr; gap: 8px; }
 
-      /* Main Tabs — Reiter einzeilig auf Mobile */
+      /* Main Tabs — 2 Spalten auf Mobile */
       .tabs {
-        display: flex !important;
-        flex-wrap: wrap;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
         overflow: visible !important;
         gap: 5px;
         padding-bottom: 10px;
@@ -1307,20 +1307,19 @@
       .tabs::-webkit-scrollbar { display: none; }
       .tab-btn {
         white-space: nowrap;
-        padding: 8px 6px;
-        font-size: 15.6px;
-        flex: 1 1 calc(25% - 5px);
-        min-width: 0;
+        padding: 9px 10px;
+        font-size: 16.2px;
+        width: 100%;
         text-align: center;
       }
       #autoBtn, #saveBtn, #settingsBtn {
         white-space: nowrap;
         font-size: 16.9px;
         padding: 9px 10px;
-        flex: 1 1 calc(50% - 5px);
+        grid-column: span 1;
       }
       #saveBtn { margin-left: 0 !important; }
-      #settingsBtn { flex-basis: 100%; margin-left: 0 !important; }
+      #settingsBtn { grid-column: span 2; margin-left: 0 !important; }
 
       /* ── WOCHENPLAN MOBILE: Schicht-Tabs + 2-Spalten-Tage ── */
       .schedule-wrap { overflow-x: hidden; border: none; border-radius: 0; padding: 0; }
