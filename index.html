@@ -1517,6 +1517,10 @@
       .inline-grid-2 { grid-template-columns: 1fr 1fr; gap: 8px; }
       .shift-config-row { grid-template-columns: 1fr; }
       .logo-preview-wrap { grid-template-columns: 1fr; }
+      .print-only {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
       .vacation-modal .modal-content {
         width: calc(100vw - 16px);
         max-width: calc(100vw - 16px);
@@ -1624,7 +1628,7 @@
     <!-- Main tabs card -->
     <section class="card">
       <div class="card-content">
-        <div class="print-only" style="margin-bottom:14px; font-weight:700;">Druckansicht / A4-Ausgabe</div>
+        <div class="print-only" style="margin-bottom:14px; font-weight:700; white-space:nowrap;">Verwaltung</div>
         <div class="tabs">
           <button class="tab-btn active" data-tab="plan">📅 Wochenplan</button>
           <button class="tab-btn" data-tab="staff">👥 Mitarbeiter</button>
