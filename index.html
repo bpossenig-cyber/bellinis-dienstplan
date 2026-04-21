@@ -434,10 +434,13 @@
     }
     .mobile-header-dropdown.open { display: grid; }
     .mobile-header-dropdown .menu-action-btn {
+      display: block;
       width: 100%;
       text-align: left;
       font-size: 14px !important;
       padding: 9px 10px;
+      text-decoration: none;
+      color: var(--text);
     }
     .accordion-body-collapsed { display: none; }
 
@@ -1614,11 +1617,11 @@
       <button id="headerBurgerBtn" class="dark mobile-header-menu-btn" type="button" aria-expanded="false">☰</button>
     </div>
     <div id="headerBurgerMenu" class="mobile-header-dropdown">
-      <button type="button" class="menu-action-btn" data-nav-tab="plan">📅 Wochenplan</button>
-      <button type="button" class="menu-action-btn" data-nav-tab="shifts">🛠 Schichten</button>
-      <button type="button" class="menu-action-btn" data-nav-tab="staff">👥 Mitarbeiter</button>
-      <button type="button" class="menu-action-btn" data-nav-tab="stats">📊 Auswertung</button>
-      <button type="button" class="menu-action-btn" data-nav-tab="archive">🗂 Archiv</button>
+      <a class="menu-action-btn" data-nav-tab="plan" href="#tab-plan">📅 Wochenplan</a>
+      <a class="menu-action-btn" data-nav-tab="shifts" href="#tab-shifts">🛠 Schichten</a>
+      <a class="menu-action-btn" data-nav-tab="staff" href="#tab-staff">👥 Mitarbeiter</a>
+      <a class="menu-action-btn" data-nav-tab="stats" href="#tab-stats">📊 Auswertung</a>
+      <a class="menu-action-btn" data-nav-tab="archive" href="#tab-archive">🗂 Archiv</a>
       <button type="button" class="menu-action-btn" data-nav-action="auto">⚡ Auto-Plan erzeugen</button>
       <button type="button" class="menu-action-btn" data-nav-action="save">💾 Speichern</button>
       <button type="button" class="menu-action-btn" data-nav-action="settings">⚙️ Einstellungen</button>
@@ -2284,6 +2287,17 @@
       document.querySelectorAll('.tab-panel').forEach(panel => {
         panel.classList.toggle('active', panel.id === `tab-${tabKey}`);
       });
+    }
+
+    function switchTabAndJumpToPanel(tabKey) {
+      switchMainTab(tabKey);
+      const panel = document.getElementById(`tab-${tabKey}`);
+      if (panel) {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        try {
+          history.replaceState(null, '', `#tab-${tabKey}`);
+        } catch (_) {}
+      }
     }
 
     function applyMobileMenuState() {
@@ -5578,8 +5592,9 @@
       }
       if (headerBurgerMenu) {
         headerBurgerMenu.querySelectorAll('[data-nav-tab]').forEach(btn => {
-          btn.addEventListener('click', () => {
-            switchMainTab(btn.dataset.navTab);
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchTabAndJumpToPanel(btn.dataset.navTab);
             state.headerBurgerOpen = false;
             applyHeaderBurgerMenuState();
           });
