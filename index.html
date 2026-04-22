@@ -1490,7 +1490,7 @@
         display: block;
         text-align: center;
       }
-      #autoBtn, #saveBtn, #settingsBtn {
+      #autoBtn, #saveBtn {
         white-space: nowrap;
         font-size: 16.9px;
         padding: 9px 10px;
@@ -1498,7 +1498,6 @@
         width: 100%;
       }
       #saveBtn { margin-left: 0 !important; }
-      #settingsBtn { grid-column: span 1; margin-left: 0 !important; }
 
       /* ── WOCHENPLAN MOBILE: Schicht-Tabs + 2-Spalten-Tage ── */
       .schedule-wrap { overflow-x: hidden; border: none; border-radius: 0; padding: 0; }
@@ -1717,8 +1716,19 @@
       .day-block-btn { padding: 5px 8px; font-size: 11px; }
 
       /* Auswertung */
-      .stats-mode-bar { gap: 5px; }
-      .stats-mode-btn { padding: 7px 11px; font-size: 12px; }
+      .stats-mode-bar {
+        gap: 6px;
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+      .stats-mode-btn {
+        width: 100%;
+        min-width: 0;
+        padding: 8px 10px;
+        font-size: 12px;
+        text-align: center;
+        white-space: normal;
+      }
       .stats-week-list { gap: 5px; flex-wrap: wrap; }
       .stats-week-pill { padding: 6px 11px; font-size: 12px; }
       .stats-week-breakdown { grid-template-columns: repeat(3, 1fr); gap: 4px; }
@@ -1875,7 +1885,6 @@
           <button id="autoBtn" class="dark" style="margin-left:auto;">⚡ Auto-Plan erzeugen</button>
           <button id="saveBtn" style="background:#16a34a; border-color:#16a34a; color:#fff; font-weight:700;">💾 Speichern</button>
           <button id="undoDeleteBtn" title="Nur letzter Löschschritt rückgängig">↶ Löschen rückgängig (0)</button>
-          <button id="settingsBtn">⚙️ Einstellungen</button>
         </div>
 
         <!-- Plan tab -->
@@ -3018,12 +3027,23 @@
       updateUndoDeleteButtons();
     }
 
-    function savePlan() {
+    function hasCurrentWeekPlanContent() {
+      const hasAssignments = DAYS.some(day => SHIFTS.some(shift =>
+        (state.schedule?.[day]?.[shift.key] || []).some(token => String(token || '').trim())
+      ));
+      const hasHolidayData = (state.holidayDates || []).length > 0
+        || Object.keys(state.holidayCountByDate || {}).length > 0;
+      return hasAssignments || hasHolidayData;
+    }
+
+    function saveCurrentPlanToHistory({ showToast = true, resetUndo = true, toastMessage = '✓ Gespeichert!' } = {}) {
       autosave();
-      
+
+      if (!state.weekStartDate) return false;
+
       // Check if we already have an entry for this week (same weekStartDate)
       const existingIndex = state.history.findIndex(e => e.weekStartDate === state.weekStartDate);
-      
+
       const archiveEntry = {
         id: existingIndex >= 0 ? state.history[existingIndex].id : String(Date.now()),
         weekLabel: state.weekLabel,
@@ -3036,7 +3056,7 @@
         holidayCountry: state.holidayCountry || 'AT',
         savedAt: state.savedAt,
       };
-      
+
       if (existingIndex >= 0) {
         // OVERWRITE existing entry
         state.history[existingIndex] = archiveEntry;
@@ -3044,15 +3064,21 @@
         // Add new entry
         state.history = [archiveEntry, ...state.history].slice(0, HISTORY_LIMIT);
       }
-      
+
       localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history));
       renderArchive();
-      state.deleteUndoStack = [];
-      saveDeleteUndoStack();
+      if (resetUndo) {
+        state.deleteUndoStack = [];
+        saveDeleteUndoStack();
+      }
       updateUndoDeleteButtons();
-      
-      // Show visual feedback
-      showSaveConfirmation();
+
+      if (showToast) showSaveConfirmation(toastMessage);
+      return true;
+    }
+
+    function savePlan() {
+      saveCurrentPlanToHistory();
     }
 
     function showSaveConfirmation(message = '✓ Gespeichert!') {
@@ -5989,30 +6015,43 @@
       document.getElementById('weekStartDate').addEventListener('change', (e) => {
         const oldDate = state.weekStartDate;
         const newDate = e.target.value;
-        
+
         // Check if date actually changed
         if (oldDate && oldDate !== newDate) {
           // Date changed - ask user if they want to reset the schedule
-          if (confirmDeleteAction('Neues Datum ausgewählt. Wochenplan zurücksetzen (alle Mitarbeiter entfernen)?')) {
-            pushDeleteUndoSnapshot('Wochenplan durch Datumswechsel geleert', {
-              weekLabel: state.weekLabel,
-              weekStartDate: state.weekStartDate,
-              savedAt: state.savedAt,
-              schedule: state.schedule,
-              holidayDates: state.holidayDates,
-              holidayCountByDate: state.holidayCountByDate,
-            });
-            // Reset schedule to empty
-            state.schedule = {};
-            DAYS.forEach(day => {
-              state.schedule[day] = {};
-              SHIFTS.forEach(shift => {
-                state.schedule[day][shift.key] = [''];
-              });
+          const shouldReset = confirmDeleteAction('Neues Datum ausgewählt. Wochenplan zurücksetzen (alle Mitarbeiter entfernen)?');
+          if (!shouldReset) {
+            e.target.value = oldDate;
+            return;
+          }
+
+          // Auto-save old week to archive before switching to the new date.
+          if (hasCurrentWeekPlanContent()) {
+            saveCurrentPlanToHistory({
+              showToast: true,
+              resetUndo: false,
+              toastMessage: '✓ Vorherige Woche automatisch gespeichert.',
             });
           }
+
+          pushDeleteUndoSnapshot('Wochenplan durch Datumswechsel geleert', {
+            weekLabel: state.weekLabel,
+            weekStartDate: state.weekStartDate,
+            savedAt: state.savedAt,
+            schedule: state.schedule,
+            holidayDates: state.holidayDates,
+            holidayCountByDate: state.holidayCountByDate,
+          });
+          // Reset schedule to empty
+          state.schedule = {};
+          DAYS.forEach(day => {
+            state.schedule[day] = {};
+            SHIFTS.forEach(shift => {
+              state.schedule[day][shift.key] = [''];
+            });
+          });
         }
-        
+
         state.weekStartDate = newDate;
         if (state.weekStartDate) {
           const d = new Date(state.weekStartDate + 'T12:00:00');
@@ -6029,7 +6068,7 @@
       document.getElementById('csvBtn').addEventListener('click', exportCsv);
       document.getElementById('jsonBtn').addEventListener('click', exportJson);
       document.getElementById('resetBtn').addEventListener('click', resetPlan);
-      document.getElementById('settingsBtn').addEventListener('click', openSettingsModal);
+      document.getElementById('settingsBtn')?.addEventListener('click', openSettingsModal);
       document.getElementById('undoDeleteBtn').addEventListener('click', undoLastDeleteAction);
       document.getElementById('closeSettingsBtn').addEventListener('click', closeSettingsModal);
       document.getElementById('settingsModal').addEventListener('click', (e) => {
@@ -6230,7 +6269,7 @@
             if (action === 'auto') document.getElementById('autoBtn')?.click();
             if (action === 'save') document.getElementById('saveBtn')?.click();
             if (action === 'undo') document.getElementById('undoDeleteBtn')?.click();
-            if (action === 'settings') document.getElementById('settingsBtn')?.click();
+            if (action === 'settings') openSettingsModal();
             state.headerBurgerOpen = false;
             applyHeaderBurgerMenuState();
           });
