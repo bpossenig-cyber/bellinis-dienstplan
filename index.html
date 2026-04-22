@@ -421,6 +421,8 @@
       padding: 0 !important;
       border-radius: 10px;
       z-index: 3;
+      font-size: 22px;
+      line-height: 1;
     }
     .mobile-header-dropdown {
       display: none;
@@ -565,6 +567,18 @@
       border-left-color: #a89b87;
       border-right-color: #a89b87;
       opacity: 0.95;
+    }
+    td.shift-band-frueh1 {
+      background: #bae6fd !important;
+    }
+    td.shift-band-frueh2 {
+      background: #fde68a !important;
+    }
+    td.shift-band-spaet {
+      background: #fdba74 !important;
+    }
+    td.shift-band-nacht {
+      background: #c7d2fe !important;
     }
 
     .shift-label { font-weight: 700; font-size: 19.1px; }
@@ -1315,6 +1329,7 @@
       /* Header kompakt */
       .header-bar {
         padding: 12px 14px;
+        padding-right: 76px;
         grid-template-columns: auto 1fr;
         gap: 10px;
       }
@@ -1346,7 +1361,27 @@
         top: 8px;
         z-index: 2200;
       }
-      .mobile-header-menu-btn { display: inline-flex; align-items: center; justify-content: center; }
+      .mobile-header-menu-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 52px !important;
+        width: 52px;
+        font-size: 31px;
+        line-height: 1;
+        top: 50%;
+        right: 8px;
+        transform: translateY(-50%);
+      }
+      .mobile-header-menu-btn:hover,
+      .mobile-header-menu-btn:active,
+      .mobile-header-menu-btn:focus-visible {
+        transform: translateY(-50%) !important;
+      }
+      .mobile-header-dropdown .menu-action-btn {
+        font-size: 20px !important;
+        padding: 13px 14px;
+      }
       .mobile-anchor-title {
         display: block;
         font-family: 'Playfair Display', serif !important;
@@ -1402,9 +1437,9 @@
       }
 
       .mobile-shift-tab {
-        padding: 10px 6px;
+        padding: 13px 8px;
         border-radius: 10px;
-        font-size: 25.2px !important;
+        font-size: 25px !important;
         font-weight: 700 !important;
         background: var(--cream);
         border: 1.5px solid var(--border);
@@ -1413,7 +1448,7 @@
         font-family: 'DM Sans', sans-serif;
         text-align: center;
         line-height: 1.2;
-        min-height: 48px;
+        min-height: 62px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -1421,9 +1456,25 @@
         white-space: normal;
         word-break: break-word;
       }
+      .mobile-shift-tab .mobile-shift-tab-label {
+        font-size: 0.7em;
+        line-height: 1.1;
+        font-weight: 700;
+      }
+      .mobile-shift-tab .mobile-shift-tab-time {
+        font-size: 0.5em;
+        opacity: 0.82;
+        margin-top: 2px;
+        line-height: 1.1;
+      }
       .mobile-shift-tab.active.frueh1 { background: #166534; border-color: #166534; color: #fff; }
       .mobile-shift-tab.active.frueh2 { background: #1a5c35; border-color: #1a5c35; color: #fff; }
       .mobile-shift-tab.active.spaet  { background: #92400e; border-color: #92400e; color: #fff; }
+      .mobile-shift-tab.active {
+        background: #16a34a;
+        border-color: #16a34a;
+        color: #fff;
+      }
 
       .mobile-days-grid {
         display: grid;
@@ -1452,6 +1503,27 @@
         color: var(--muted);
         margin-bottom: 8px;
       }
+      .mobile-day-card .holiday-mobile-row {
+        margin-bottom: 8px;
+      }
+      .mobile-day-card .holiday-head-note {
+        color: #1f2937;
+        background: rgba(201, 148, 58, 0.22);
+      }
+      .mobile-day-card .holiday-count-toggle {
+        color: #1f2937;
+        background: rgba(26, 18, 8, 0.08);
+        border: 1px solid rgba(26, 18, 8, 0.16);
+      }
+      .mobile-day-card.holiday-column {
+        background: linear-gradient(180deg, #fff7e8 0%, #f8ead1 100%);
+        border-left: 2px solid #c9943a;
+      }
+      .mobile-day-card.holiday-column.holiday-off {
+        background: linear-gradient(180deg, #f5f2ec 0%, #ebe6de 100%);
+        border-left-color: #a89b87;
+        opacity: 0.95;
+      }
 
       .mobile-day-card select {
         width: 100%;
@@ -1478,6 +1550,10 @@
       .mobile-day-card.shift-spaet { border-color: #f0c090; background: #fff7ed; }
       .mobile-day-card.shift-spaet .day-label { color: #92400e; }
       .mobile-day-card.shift-spaet select { border-color: #f0c090; background: #ffedd5; }
+      .mobile-day-card.shift-band-frueh1 { border-color: #7dd3fc; background: #bae6fd; }
+      .mobile-day-card.shift-band-frueh2 { border-color: #facc15; background: #fde68a; }
+      .mobile-day-card.shift-band-spaet { border-color: #fb923c; background: #fdba74; }
+      .mobile-day-card.shift-band-nacht { border-color: #818cf8; background: #c7d2fe; }
 
       .mobile-day-card .add-slot-btn {
         width: 100%;
@@ -1623,7 +1699,7 @@
     <div class="header-bar">
       <div class="logo-badge" id="logoBadge">B</div>
       <div>
-        <div class="header-title">Bellinis Dienstplan</div>
+        <div class="header-title">Dienstplan</div>
         <div class="header-sub" id="companyInfoLine">Sparkassenplatz 2, 6020 Innsbruck · +43 699 12268051 · office@judys-bellinis.at</div>
       </div>
       <div class="datetime-display">
@@ -2974,10 +3050,11 @@
       const totalStaff = state.staff.length;
       const absentStaff = state.staff.filter(isUnavailable).length;
       const weekDates = getWeekDates(new Date(`${state.weekStartDate}T12:00:00`));
+      const holidaySet = getKnownHolidayDateSet();
       const holidaySkipDays = new Set(
         DAYS.filter((day, index) => {
           const dateStr = weekDates[index]?.toISOString().slice(0, 10);
-          return dateStr && (state.holidayDates || []).includes(dateStr) && isHolidayCounted(dateStr);
+          return dateStr && holidaySet.has(dateStr) && isHolidayCounted(dateStr);
         })
       );
       // When staff is reduced (holidays/sick), increase tolerance so shifts stay filled.
@@ -3220,6 +3297,16 @@
       return weekDates[index].toISOString().slice(0, 10);
     }
 
+    function getShiftVisualBand(shift) {
+      const key = String(shift?.key || '').toLowerCase();
+      const label = String(shift?.label || '').toLowerCase();
+      if (key.includes('frueh1') || key.includes('früh1') || /fr[üu]h\s*1/.test(label)) return 'frueh1';
+      if (key.includes('frueh2') || key.includes('früh2') || /fr[üu]h\s*2/.test(label)) return 'frueh2';
+      if (key.includes('spaet') || key.includes('spät') || /sp[äa]t/.test(label)) return 'spaet';
+      if (key.includes('nacht') || /nacht/.test(label)) return 'nacht';
+      return 'frueh1';
+    }
+
     function getCurrentWeekDateSet() {
       if (!state.weekStartDate) return new Set();
       const weekDates = getWeekDates(new Date(`${state.weekStartDate}T12:00:00`));
@@ -3237,6 +3324,16 @@
     function isHolidayCounted(dateStr, holidayCountByDate = state.holidayCountByDate || {}) {
       if (!dateStr) return false;
       return holidayCountByDate[dateStr] !== false;
+    }
+
+    function setHolidayCountForDate(dateStr, shouldCount) {
+      if (!dateStr) return;
+      if (!Array.isArray(state.holidayDates)) state.holidayDates = [];
+      if (!state.holidayDates.includes(dateStr)) state.holidayDates.push(dateStr);
+      state.holidayDates.sort();
+      state.holidayCountByDate[dateStr] = !!shouldCount;
+      autosave();
+      render();
     }
 
     async function loadPublicHolidaysForCurrentWeek(countryCode) {
@@ -3847,12 +3944,13 @@
 
     function renderWeekStrip() {
       const weekDates = getWeekDates(new Date(`${state.weekStartDate}T12:00:00`));
+      const holidaySet = getKnownHolidayDateSet();
       const strip = document.getElementById('weekStrip');
       strip.innerHTML = '';
       weekDates.forEach((date, index) => {
         const dayName = DAYS[index];
         const dateStr = date.toISOString().slice(0, 10);
-        const isHoliday = (state.holidayDates || []).includes(dateStr);
+        const isHoliday = holidaySet.has(dateStr);
         const holidayCounts = isHolidayCounted(dateStr);
         const vacationNames = state.staff
           .filter(member => getMemberDayAbsenceType(member, dateStr) === 'urlaub')
@@ -3889,9 +3987,7 @@
             const checkbox = head.querySelector('.holiday-count-checkbox');
             if (checkbox) {
               checkbox.addEventListener('change', (e) => {
-                state.holidayCountByDate[dateStr] = e.target.checked;
-                autosave();
-                render();
+                setHolidayCountForDate(dateStr, e.target.checked);
               });
             }
           } else if (vacationNames.length || sickNames.length) {
@@ -4071,18 +4167,21 @@
       // CSS media queries handle table vs mobile visibility.
       // Always render both so switching viewport works instantly.
       const body = document.getElementById('scheduleBody');
+      const holidaySet = getKnownHolidayDateSet();
       body.innerHTML = '';
       SHIFTS.forEach(shift => {
         const tr = document.createElement('tr');
         const firstCell = document.createElement('td');
         firstCell.innerHTML = `<div class="shift-label">${shift.label}</div><div class="shift-sub">${shift.time} · ${shift.hours}h</div>`;
         tr.appendChild(firstCell);
+        const shiftBand = getShiftVisualBand(shift);
         DAYS.forEach(day => {
           const td = document.createElement('td');
           td.dataset.day = day;
           td.dataset.shift = shift.key;
           const dateStr = getDateByDayName(state.weekStartDate, day);
-          if ((state.holidayDates || []).includes(dateStr)) {
+          td.classList.add(`shift-band-${shiftBand}`);
+          if (holidaySet.has(dateStr)) {
             td.classList.add('holiday-column');
             if (!isHolidayCounted(dateStr)) td.classList.add('holiday-off');
           }
@@ -4107,6 +4206,7 @@
       container.innerHTML = '';
 
       const weekDates = getWeekDates(new Date(`${state.weekStartDate}T12:00:00`));
+      const holidaySet = getKnownHolidayDateSet();
 
       // Shift tab bar
       const tabBar = document.createElement('div');
@@ -4114,7 +4214,7 @@
       SHIFTS.forEach(shift => {
         const btn = document.createElement('button');
         btn.className = 'mobile-shift-tab ' + shift.key + (mobileActiveShift === shift.key ? ' active' : '');
-        btn.innerHTML = `<span style="font-size:12px;">${shift.label}</span><span style="font-size:10px; opacity:0.8; margin-top:2px;">${shift.time}</span>`;
+        btn.innerHTML = `<span class="mobile-shift-tab-label">${shift.label}</span><span class="mobile-shift-tab-time">${shift.time}</span>`;
         btn.addEventListener('click', () => {
           mobileActiveShift = shift.key;
           renderMobileSchedule();
@@ -4131,6 +4231,15 @@
       DAYS.forEach((day, idx) => {
         const card = document.createElement('div');
         card.className = 'mobile-day-card shift-' + shift.key;
+        const shiftBand = getShiftVisualBand(shift);
+        card.classList.add(`shift-band-${shiftBand}`);
+        const dateStr = getDateByDayName(state.weekStartDate, day);
+        const isHoliday = holidaySet.has(dateStr);
+        const holidayCounts = isHolidayCounted(dateStr);
+        if (isHoliday) {
+          card.classList.add('holiday-column');
+          if (!holidayCounts) card.classList.add('holiday-off');
+        }
 
         const dayLabel = document.createElement('div');
         dayLabel.className = 'day-label';
@@ -4141,6 +4250,25 @@
         dateLabel.className = 'day-date-label';
         dateLabel.textContent = weekDates[idx].toLocaleDateString('de-DE');
         card.appendChild(dateLabel);
+
+        if (isHoliday) {
+          const holidayRow = document.createElement('div');
+          holidayRow.className = 'holiday-mobile-row';
+          holidayRow.innerHTML = `
+            <div class="holiday-head-note">🎉 Feiertag</div>
+            <label class="holiday-count-toggle" style="margin-left:6px;">
+              <input type="checkbox" class="holiday-count-checkbox-mobile" data-date="${dateStr}" ${holidayCounts ? 'checked' : ''}>
+              Feiertag zählt? ${holidayCounts ? 'Ja' : 'Nein'}
+            </label>
+          `;
+          const mobileCheckbox = holidayRow.querySelector('.holiday-count-checkbox-mobile');
+          if (mobileCheckbox) {
+            mobileCheckbox.addEventListener('change', (e) => {
+              setHolidayCountForDate(dateStr, e.target.checked);
+            });
+          }
+          card.appendChild(holidayRow);
+        }
 
         // Render slots
         const renderSlots = () => {
@@ -4158,7 +4286,7 @@
           if (slots.length === 0) slots.push('');
 
           const allAvailable = availableStaff();
-          const dateStr = getDateByDayName(state.weekStartDate, day);
+          const slotDateStr = getDateByDayName(state.weekStartDate, day);
           const alreadyToday = (name) => SHIFTS.some(s => {
             if (s.key === shift.key) return false;
             return (state.schedule[day][s.key] || []).includes(name);
@@ -4181,7 +4309,7 @@
               opt.value = m.name;
               const viol = hasRuleViolation(m);
               const dbl = alreadyToday(m.name);
-              const absenceType = getMemberDayAbsenceType(m, dateStr);
+              const absenceType = getMemberDayAbsenceType(m, slotDateStr);
               opt.textContent = m.name + (absenceType ? (absenceType === 'urlaub' ? ' 🌴' : ' 🤒') : viol ? ' 🚫' : dbl ? ' ⚡' : '');
               if (absenceType) opt.style.color = '#b45309';
               else if (viol) opt.style.color = '#dc2626';
@@ -4198,7 +4326,7 @@
             if (val) {
               const m = allAvailable.find(m => m.name === val);
               if (m) {
-                const absenceType = getMemberDayAbsenceType(m, dateStr);
+                const absenceType = getMemberDayAbsenceType(m, slotDateStr);
                 if (absenceType) { sel.style.borderColor='#f0c090'; sel.style.background='#fff7ed'; }
                 else if (hasRuleViolation(m)) { sel.style.borderColor='#fca5a5'; sel.style.background='#fff5f5'; }
                 else if (alreadyToday(val)) { sel.style.borderColor='#fcd34d'; sel.style.background='#fffbeb'; }
