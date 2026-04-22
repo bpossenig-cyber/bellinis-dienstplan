@@ -108,7 +108,7 @@
       font-family: 'DM Sans', sans-serif !important;
       font-size: var(--fs-md) !important;
     }
-    .small, .muted, label, .badge-day, .day-date-small, .shift-sub, #holidayFetchInfo, #holidayYearInfo {
+    .small, .muted, label, .badge-day, .day-date-small, .shift-sub, #holidayYearInfo {
       font-size: var(--fs-sm) !important;
     }
     .capsule, .staff-vacation-badge, .block-badge, .stats-day-cell, .stats-day-cell .day-label, .stats-day-cell .day-shifts, .staff-no-shifts {
@@ -393,10 +393,35 @@
     }
 
     .week-day .day-date {
-      font-size: 18.8px;
+      font-size: 17.2px;
       font-weight: 700;
       margin-top: 4px;
       color: var(--text);
+    }
+    .day-duty-line {
+      margin-top: 9px;
+      font-size: 11.9px;
+      line-height: 1.3;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .day-duty-line .duty-prefix {
+      font-size: 11.8px;
+      font-weight: 800;
+      letter-spacing: 0.35px;
+      opacity: 0.9;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .day-duty-line .duty-person,
+    .day-duty-line .duty-empty {
+      display: block;
+    }
+    .week-day .day-duty-line {
+      color: var(--text);
+      opacity: 0.82;
     }
 
     /* Tabs */
@@ -547,6 +572,12 @@
 
     .day-head { font-weight: 700; font-size: 20.5px; }
     .day-date-small { font-size: 16.1px; color: #ccc; margin-top: 3px; }
+    th .day-duty-line {
+      color: rgba(255,255,255,0.97);
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 5px;
+    }
 
     tr:nth-child(even) td { background: linear-gradient(180deg, #edf5f0 0%, #e5efe9 100%); }
     tr:nth-child(odd) td { background: linear-gradient(180deg, #ffffff 0%, #f5faf7 100%); }
@@ -869,6 +900,29 @@
 
     /* Archive */
     .archive-list { display: grid; gap: 12px; }
+    .archive-month-divider {
+      display: block;
+      align-items: left;
+      gap: 10px;
+      margin: 2px 0 4px;
+    }
+    .archive-month-divider::before,
+    .archive-month-divider::after {
+      display: none;
+    }
+    .archive-month-label {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #7dbf8e;
+      background: #d0eed8;
+      color: #166534;
+      font-size: 16px;
+      font-weight: 700;
+      text-transform: capitalize;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
 
     .archive-item {
       border: 1.5px solid var(--border);
@@ -971,6 +1025,30 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+    }
+    .stats-month-divider {
+      width: 100%;
+      display: block;
+      align-items: left;
+      gap: 10px;
+      margin: 8px 0 2px;
+      flex-basis: 100%;
+    }
+    .stats-month-divider::before,
+    .stats-month-divider::after {
+      display: none;
+    }
+    .stats-month-label {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #7dbf8e;
+      background: #d0eed8;
+      color: #166534;
+      font-size: 16px;
+      font-weight: 700;
+      text-transform: capitalize;
+      white-space: nowrap;
     }
 
     .stats-week-pill {
@@ -1503,6 +1581,12 @@
         color: var(--muted);
         margin-bottom: 8px;
       }
+      .mobile-day-card .day-duty-line {
+        color: #1f2937;
+        font-size: 13.2px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
       .mobile-day-card .holiday-mobile-row {
         margin-bottom: 8px;
       }
@@ -1716,6 +1800,7 @@
       <a class="menu-action-btn" data-nav-tab="archive" href="#tab-archive">🗂 Archiv</a>
       <button type="button" class="menu-action-btn" data-nav-action="auto">⚡ Auto-Plan erzeugen</button>
       <button type="button" class="menu-action-btn" data-nav-action="save">💾 Speichern</button>
+      <button type="button" class="menu-action-btn" data-nav-action="undo">↶ Löschung rückgängig</button>
       <button type="button" class="menu-action-btn" data-nav-action="settings">⚙️ Einstellungen</button>
     </div>
 
@@ -1772,7 +1857,7 @@
     <section class="card">
       <div class="card-content">
         <div style="font-weight:700; color:var(--text);">Automatische Planung</div>
-        <div class="small muted" style="margin-top:6px;">Der Generator plant fair, verteilt Stunden gleichmäßig, rotiert freie Tage, berücksichtigt Notizen wie „Nur Frühdienst" und besetzt Früh 1, Früh 2 und Spät zuverlässig. Pro Schicht können bis zu 2 Mitarbeitende eingeplant werden.</div>
+        <div class="small muted" style="margin-top:6px;">Der Generator plant fair, verteilt Stunden gleichmäßig, rotiert freie Tage und berücksichtigt ausschließlich die expliziten Regeln aus Schicht-Sperren, gesperrten Wochentagen, Urlaub und Krankenstand. Pro Schicht können bis zu 2 Mitarbeitende eingeplant werden.</div>
         <div id="autoInfo" style="display:none;"></div>
       </div>
     </section>
@@ -1789,6 +1874,7 @@
           <button class="tab-btn" data-tab="archive">🗂 Archiv</button>
           <button id="autoBtn" class="dark" style="margin-left:auto;">⚡ Auto-Plan erzeugen</button>
           <button id="saveBtn" style="background:#16a34a; border-color:#16a34a; color:#fff; font-weight:700;">💾 Speichern</button>
+          <button id="undoDeleteBtn" title="Nur letzter Löschschritt rückgängig">↶ Löschen rückgängig (0)</button>
           <button id="settingsBtn">⚙️ Einstellungen</button>
         </div>
 
@@ -2100,6 +2186,8 @@
     const STAFF_KEY   = 'bellinis-planer-staff-v1';  // global staff store, never reset
     const SHIFTS_KEY  = 'bellinis-planer-shifts-v1';
     const SETTINGS_KEY = 'app_settings';
+    const DELETE_UNDO_STACK_KEY = 'bellinis-planer-delete-undo-v1';
+    const DELETE_UNDO_LIMIT = 1;
     const HISTORY_LIMIT = 104;
 
     const SETTINGS_THEMES = [
@@ -2159,12 +2247,12 @@
     };
 
     const DEFAULT_STAFF = [
-      { id: 'julie', name: 'Julie', targetHours: 40, maxDays: 5, notes: '', status: 'verfuegbar', noFrueh1: false, noFrueh2: false, noSpaet: false, blockedDays: [] },
-      { id: 'rachel', name: 'Rachel', targetHours: 40, maxDays: 5, notes: '', status: 'verfuegbar', noFrueh1: false, noFrueh2: false, noSpaet: false, blockedDays: [] },
-      { id: 'bigmama', name: 'Big Mama', targetHours: 20, maxDays: 3, notes: '', status: 'verfuegbar', noFrueh1: false, noFrueh2: false, noSpaet: true, blockedDays: [] },
-      { id: 'kellnerin-a', name: 'Kellnerin A', targetHours: 40, maxDays: 5, notes: '', status: 'verfuegbar', noFrueh1: false, noFrueh2: false, noSpaet: false, blockedDays: [] },
-      { id: 'kellnerin-b', name: 'Kellnerin B', targetHours: 25, maxDays: 3, notes: '', status: 'verfuegbar', noFrueh1: false, noFrueh2: false, noSpaet: false, blockedDays: [] },
-      { id: 'kellnerin-c', name: 'Kellnerin C', targetHours: 40, maxDays: 5, notes: '', status: 'verfuegbar', noFrueh1: false, noFrueh2: false, noSpaet: false, blockedDays: [] },
+      { id: 'julie', name: 'Julie', targetHours: 40, maxDays: 5, notes: '', status: 'verfuegbar', blockedDays: [] },
+      { id: 'rachel', name: 'Rachel', targetHours: 40, maxDays: 5, notes: '', status: 'verfuegbar', blockedDays: [] },
+      { id: 'bigmama', name: 'Big Mama', targetHours: 20, maxDays: 3, notes: '', status: 'verfuegbar', blockedDays: [] },
+      { id: 'kellnerin-a', name: 'Kellnerin A', targetHours: 40, maxDays: 5, notes: '', status: 'verfuegbar', blockedDays: [] },
+      { id: 'kellnerin-b', name: 'Kellnerin B', targetHours: 25, maxDays: 3, notes: '', status: 'verfuegbar', blockedDays: [] },
+      { id: 'kellnerin-c', name: 'Kellnerin C', targetHours: 40, maxDays: 5, notes: '', status: 'verfuegbar', blockedDays: [] },
     ];
 
     let deferredInstallPrompt = null;
@@ -2187,10 +2275,10 @@
       holidayYearEntries: [],
       autosaveLock: false,
       lastPdfBlob: null,
-      mobileMenuOpen: false,
       urlaubAccordionOpen: false,
       krankAccordionOpen: false,
       headerBurgerOpen: false,
+      deleteUndoStack: [],
     };
     let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP_SETTINGS));
     let pendingLogoBase64 = '';
@@ -2219,6 +2307,27 @@
         });
       });
       return normalized;
+    }
+
+    function normalizeScheduleAssignmentsToStaff(schedule, staffList) {
+      const normalized = normalizeSchedule(schedule);
+      const lookup = buildMemberLookup(staffList || []);
+      let changed = false;
+      DAYS.forEach(day => {
+        SHIFTS.forEach(shift => {
+          const current = Array.isArray(normalized[day]?.[shift.key]) ? normalized[day][shift.key] : [''];
+          const next = current.map(token => {
+            const raw = String(token ?? '').trim();
+            if (!raw) return '';
+            const resolved = resolveMemberFromToken(raw, lookup);
+            const canonical = resolved?.name || raw;
+            if (canonical !== token) changed = true;
+            return canonical;
+          });
+          normalized[day][shift.key] = next.length ? next : [''];
+        });
+      });
+      return { schedule: normalized, changed };
     }
 
     function escapeHtml(value) {
@@ -2288,6 +2397,9 @@
       if (member.noFrueh1) member.shiftRestrictions.frueh1 = true;
       if (member.noFrueh2) member.shiftRestrictions.frueh2 = true;
       if (member.noSpaet) member.shiftRestrictions.spaet = true;
+      delete member.noFrueh1;
+      delete member.noFrueh2;
+      delete member.noSpaet;
     }
 
     function syncMemberShiftRestrictions(member) {
@@ -2300,9 +2412,6 @@
       SHIFTS.forEach(shift => {
         if (member.shiftRestrictions[shift.key] === undefined) member.shiftRestrictions[shift.key] = false;
       });
-      member.noFrueh1 = !!member.shiftRestrictions.frueh1;
-      member.noFrueh2 = !!member.shiftRestrictions.frueh2;
-      member.noSpaet = !!member.shiftRestrictions.spaet;
     }
 
     function syncAllMemberShiftRestrictions() {
@@ -2319,9 +2428,6 @@
       if (!member) return;
       syncMemberShiftRestrictions(member);
       member.shiftRestrictions[shiftKey] = !!value;
-      member.noFrueh1 = !!member.shiftRestrictions.frueh1;
-      member.noFrueh2 = !!member.shiftRestrictions.frueh2;
-      member.noSpaet = !!member.shiftRestrictions.spaet;
     }
 
     function getBlockedShiftKeys(member) {
@@ -2699,15 +2805,37 @@
       return array[Math.floor(Math.random() * array.length)];
     }
 
-    function normalizeNotes(notes) { return (notes || '').toLowerCase(); }
-    function isEarlyOnly(notes) {
-      const n = normalizeNotes(notes);
-      return n.includes('nur frühdienst') || n.includes('nur fruehdienst');
+    function normalizePersonToken(value) {
+      return String(value ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
     }
-    function isLateBlocked(notes) {
-      const n = normalizeNotes(notes);
-      return n.includes('keine spätschichten') || n.includes('keine spaetschichten');
+
+    function isSameMemberToken(member, token) {
+      const rawToken = String(token ?? '').trim();
+      if (!rawToken) return false;
+      const memberId = String(member?.id ?? '').trim();
+      if (memberId && rawToken === memberId) return true;
+      return normalizePersonToken(rawToken) === normalizePersonToken(member?.name);
     }
+
+    function buildMemberLookup(staffList) {
+      const byId = {};
+      const byName = {};
+      (staffList || []).forEach(member => {
+        const id = String(member?.id ?? '').trim();
+        const nameKey = normalizePersonToken(member?.name);
+        if (id) byId[id] = member;
+        if (nameKey && !byName[nameKey]) byName[nameKey] = member;
+      });
+      return { byId, byName };
+    }
+
+    function resolveMemberFromToken(token, lookup) {
+      const rawToken = String(token ?? '').trim();
+      if (!rawToken) return null;
+      if (lookup?.byId?.[rawToken]) return lookup.byId[rawToken];
+      return lookup?.byName?.[normalizePersonToken(rawToken)] || null;
+    }
+
     function isUnavailable(member) {
       return member?.status === 'urlaub' || member?.status === 'krankenstand';
     }
@@ -2735,6 +2863,33 @@
 
     function availableStaff() {
       return state.staff.filter(member => !isUnavailable(member));
+    }
+
+    function getMemberWeeklyCapacityHours(member) {
+      const blocked = new Set(member?.blockedDays || []);
+      const availableDays = DAYS.filter(day => !blocked.has(day)).length;
+      const maxDays = Number(member?.maxDays);
+      const cappedDays = Number.isFinite(maxDays)
+        ? Math.max(0, Math.min(DAYS.length, maxDays))
+        : Math.min(DAYS.length, availableDays);
+      const possibleDays = Math.min(availableDays, cappedDays);
+      const allowedShiftHours = SHIFTS
+        .filter(shift => {
+          if (isShiftBlocked(member, shift.key)) return false;
+          return true;
+        })
+        .map(shift => Number(shift.hours) || 0)
+        .filter(hours => hours > 0);
+      if (!allowedShiftHours.length || possibleDays <= 0) return 0;
+      const maxShiftHours = Math.max(...allowedShiftHours);
+      return Math.round(possibleDays * maxShiftHours * 10) / 10;
+    }
+
+    function getMemberEffectiveTargetHours(member) {
+      const nominal = getMemberWeeklyHours(member);
+      const capacity = getMemberWeeklyCapacityHours(member);
+      if (capacity <= 0) return 0;
+      return Math.min(nominal, capacity);
     }
 
     function removeNameFromSchedule(name) {
@@ -2782,6 +2937,87 @@
       }
     }
 
+    function deepClone(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function saveDeleteUndoStack() {
+      localStorage.setItem(DELETE_UNDO_STACK_KEY, JSON.stringify(state.deleteUndoStack || []));
+    }
+
+    function loadDeleteUndoStack() {
+      try {
+        const raw = localStorage.getItem(DELETE_UNDO_STACK_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        state.deleteUndoStack = Array.isArray(parsed) ? parsed.slice(-DELETE_UNDO_LIMIT) : [];
+      } catch (_) {
+        state.deleteUndoStack = [];
+      }
+    }
+
+    function updateUndoDeleteButtons() {
+      const count = Array.isArray(state.deleteUndoStack) ? state.deleteUndoStack.length : 0;
+      const desktopBtn = document.getElementById('undoDeleteBtn');
+      const menuBtn = document.querySelector('#headerBurgerMenu [data-nav-action="undo"]');
+      const disabled = count === 0;
+      const label = disabled ? '↶ Löschen rückgängig (0)' : '↶ Löschen rückgängig (1)';
+      if (desktopBtn) {
+        desktopBtn.disabled = disabled;
+        desktopBtn.textContent = label;
+        desktopBtn.title = 'Nur letzter Löschschritt rückgängig';
+      }
+      if (menuBtn) {
+        menuBtn.disabled = disabled;
+        menuBtn.textContent = label;
+        menuBtn.title = 'Nur letzter Löschschritt rückgängig';
+      }
+    }
+
+    function pushDeleteUndoSnapshot(label, data) {
+      const snapshot = {
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        createdAt: new Date().toISOString(),
+        label: label || 'Löschaktion',
+        data: deepClone(data || {}),
+      };
+      state.deleteUndoStack = [snapshot];
+      saveDeleteUndoStack();
+      updateUndoDeleteButtons();
+    }
+
+    function confirmDeleteAction(message) {
+      return confirm(message || 'Diesen Eintrag wirklich löschen?');
+    }
+
+    function undoLastDeleteAction() {
+      if (!Array.isArray(state.deleteUndoStack) || state.deleteUndoStack.length === 0) {
+        alert('Keine Löschaktion zum Rückgängigmachen vorhanden.');
+        return;
+      }
+      const snapshot = state.deleteUndoStack.pop();
+      const data = snapshot?.data || {};
+
+      if (data.staff) state.staff = data.staff.map(normalizeMember);
+      if (Array.isArray(data.shifts)) SHIFTS = normalizeShifts(data.shifts);
+      if (data.schedule) state.schedule = normalizeSchedule(data.schedule);
+      if (Array.isArray(data.history)) state.history = data.history;
+      if (Array.isArray(data.holidayDates)) state.holidayDates = data.holidayDates;
+      if (data.holidayCountByDate && typeof data.holidayCountByDate === 'object') state.holidayCountByDate = data.holidayCountByDate;
+      if (typeof data.selectedStatsWeekId !== 'undefined') state.selectedStatsWeekId = data.selectedStatsWeekId;
+      if (typeof data.selectedArchiveId !== 'undefined') state.selectedArchiveId = data.selectedArchiveId;
+      if (typeof data.weekLabel !== 'undefined') state.weekLabel = data.weekLabel;
+      if (typeof data.weekStartDate !== 'undefined') state.weekStartDate = data.weekStartDate;
+      if (typeof data.savedAt !== 'undefined') state.savedAt = data.savedAt;
+
+      ensureScheduleMatchesShifts();
+      if (Array.isArray(data.history)) localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history));
+      saveDeleteUndoStack();
+      autosave();
+      render();
+      showSaveConfirmation(`↶ Wiederhergestellt: ${snapshot?.label || 'Löschaktion'}`);
+      updateUndoDeleteButtons();
+    }
+
     function savePlan() {
       autosave();
       
@@ -2811,12 +3047,15 @@
       
       localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history));
       renderArchive();
+      state.deleteUndoStack = [];
+      saveDeleteUndoStack();
+      updateUndoDeleteButtons();
       
       // Show visual feedback
       showSaveConfirmation();
     }
 
-    function showSaveConfirmation() {
+    function showSaveConfirmation(message = '✓ Gespeichert!') {
       // Create toast notification
       const toast = document.createElement('div');
       toast.style.cssText = `
@@ -2834,7 +3073,7 @@
         z-index: 10000;
         animation: slideDown 0.3s ease-out;
       `;
-      toast.textContent = '✓ Gespeichert!';
+      toast.textContent = message;
       document.body.appendChild(toast);
       
       // Add CSS animation if not exists
@@ -2949,8 +3188,6 @@
         status: 'verfuegbar',
         weeklyHours,
         targetHours: weeklyHours,
-        noFrueh1: false, noFrueh2: false,
-        noSpaet: false,
         shiftRestrictions: {},
         blockedDays: [],
         maxVacationDays: 30,
@@ -2961,6 +3198,11 @@
       normalized.vacationBlocks = normalizeBlocks(normalized.vacationBlocks);
       normalized.sickBlocks = normalizeBlocks(normalized.sickBlocks);
       syncMemberShiftRestrictions(normalized);
+      // Legacy cleanup: keep only current explicit rule model.
+      delete normalized.noFrueh;
+      delete normalized.noFrueh1;
+      delete normalized.noFrueh2;
+      delete normalized.noSpaet;
       return normalized;
     }
 
@@ -3013,13 +3255,37 @@
     }
 
     function deleteArchiveEntry(id) {
-      state.history = state.history.filter(entry => entry.id !== id);
+      const entry = state.history.find(e => e.id === id);
+      if (!entry) return;
+      if (!confirmDeleteAction(`Woche „${entry.weekLabel || 'Wochenplan'}" wirklich löschen?`)) return;
+      pushDeleteUndoSnapshot(`Archivwoche „${entry.weekLabel || 'Wochenplan'}" gelöscht`, {
+        history: state.history,
+        selectedArchiveId: state.selectedArchiveId,
+        selectedStatsWeekId: state.selectedStatsWeekId,
+      });
+      state.history = state.history.filter(current => current.id !== id);
       localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history));
       if (state.selectedArchiveId === id) state.selectedArchiveId = '';
+      if (state.selectedStatsWeekId === id) state.selectedStatsWeekId = '';
       renderArchive();
+      renderStatsWeekList();
+      const content = document.getElementById('statsWeekContent');
+      if (content && !state.selectedStatsWeekId) {
+        content.innerHTML = '<div class="notice small muted">Wähle eine gespeicherte Woche aus.</div>';
+      }
+      updateUndoDeleteButtons();
     }
 
     function resetPlan() {
+      if (!confirmDeleteAction('Aktuellen Wochenplan wirklich zurücksetzen?')) return;
+      pushDeleteUndoSnapshot('Wochenplan zurückgesetzt', {
+        weekLabel: state.weekLabel,
+        weekStartDate: state.weekStartDate,
+        savedAt: state.savedAt,
+        schedule: state.schedule,
+        holidayDates: state.holidayDates,
+        holidayCountByDate: state.holidayCountByDate,
+      });
       state.weekLabel = defaultWeekLabel();
       state.weekStartDate = getWeekDates(new Date())[0].toISOString().slice(0,10);
       state.savedAt = '';
@@ -3064,6 +3330,8 @@
 
       const staff = availableStaff();
       const shiftHours = Object.fromEntries(SHIFTS.map(shift => [shift.key, shift.hours]));
+      const shiftBandByKey = Object.fromEntries(SHIFTS.map(shift => [shift.key, getShiftVisualBand(shift)]));
+      const effectiveTargetByName = Object.fromEntries(staff.map(member => [member.name, getMemberEffectiveTargetHours(member)]));
       // Snapshot the user-defined slot counts BEFORE the optimisation loop.
       // makeEmptySchedule() always creates 1 slot — we need to preserve the
       // extra slots the user added with the "+" button.
@@ -3106,13 +3374,48 @@
             })()
           ]),
           lateCount: 0,
+          nightCount: 0,
           earlyCount: 0,
-          shiftDays: new Set(),   // tracks which DAYS the person already has a shift today
-          notes: member.notes || '',
+          ruleBreaks: 0,
           shiftRestrictions: { ...(member.shiftRestrictions || {}) },
           blockedDays: member.blockedDays || [],
-          targetHours: member.targetHours,
+          targetHours: effectiveTargetByName[member.name] ?? getMemberWeeklyHours(member),
         }]));
+
+        const hasBandOnDay = (targetSchedule, dayName, memberName, matcher) => {
+          if (!dayName || !memberName) return false;
+          return SHIFTS.some(shift => {
+            const assigned = targetSchedule?.[dayName]?.[shift.key] || [];
+            if (!assigned.includes(memberName)) return false;
+            const band = shiftBandByKey[shift.key];
+            return matcher(band);
+          });
+        };
+
+        const wouldBreakHardNightRule = (targetSchedule, dayName, shiftBand, memberName) => {
+          if (!memberName) return false;
+          const dayIndex = DAYS.indexOf(dayName);
+          if (dayIndex < 0) return false;
+
+          // Regel: nach Nachtdienst kein Frühdienst am Folgetag.
+          if (isEarlyBand(shiftBand) && dayIndex > 0) {
+            const prevDay = DAYS[dayIndex - 1];
+            if (hasBandOnDay(targetSchedule, prevDay, memberName, isNightBand)) return true;
+          }
+
+          // Regel: maximal 2 Nachtdienste hintereinander.
+          if (isNightBand(shiftBand)) {
+            let consecutiveNightsBefore = 0;
+            for (let i = dayIndex - 1; i >= 0; i--) {
+              const prevDay = DAYS[i];
+              if (hasBandOnDay(targetSchedule, prevDay, memberName, isNightBand)) consecutiveNightsBefore += 1;
+              else break;
+            }
+            if (consecutiveNightsBefore >= 2) return true;
+          }
+
+          return false;
+        };
 
         DAYS.forEach(day => {
           if (holidaySkipDays.has(day)) {
@@ -3127,17 +3430,16 @@
 
           SHIFTS.forEach(shift => {
             const targetFill = slotCounts[day][shift.key];
+            const shiftBand = shiftBandByKey[shift.key];
 
-            // 3-Phasen-Auswahl: erst streng, dann lockerer, damit Schichten nie leer bleiben
+            // 4-Phasen-Auswahl: erst streng, dann lockerer, dann Notfall-Regelbruch
             // Phase-Filter-Funktion: shiftRules immer hart, Rest konfigurierbar
             const shiftRulesFail = (member, tracker) => {
               if (tracker.shiftRestrictions?.[shift.key]) return true;
-              if (isEarlyOnly(tracker.notes) && shift.key === 'spaet') return true;
-              if (isLateBlocked(tracker.notes) && shift.key === 'spaet') return true;
               return false;
             };
 
-            const buildCandidates = (relaxMaxDays, relaxHours, relaxFreeDays) =>
+            const buildCandidates = (relaxMaxDays, relaxHours, relaxFreeDays, allowHardNightRuleBreak) =>
               shuffle(staff).filter(member => {
                 const tracker = trackers[member.name];
                 if (!tracker) return false;
@@ -3152,45 +3454,61 @@
                 }
                 if (shiftRulesFail(member, tracker)) return false;   // shift rules: always hard
                 if (!relaxHours) {
-                  const tolerance = member.targetHours * dynamicTolerancePct;
-                  if (tracker.hours + shiftHours[shift.key] > member.targetHours + tolerance) return false;
+                  const tolerance = tracker.targetHours * dynamicTolerancePct;
+                  if (tracker.hours + shiftHours[shift.key] > tracker.targetHours + tolerance) return false;
                 }
+                if (!allowHardNightRuleBreak && wouldBreakHardNightRule(schedule, day, shiftBand, member.name)) return false;
                 return true;
               }).map(member => {
                 const tracker = trackers[member.name];
                 const projected = tracker.hours + shiftHours[shift.key];
-                const hourDelta = projected - member.targetHours;
-                const hourScore  = hourDelta > 0 ? hourDelta * 3.0 : Math.abs(hourDelta) * 0.5;
-                const dayPressure  = tracker.workedDays.size * 1.5;
-                const latePenalty  = shift.key === 'spaet' ? tracker.lateCount * 3.5 : 0;
-                const earlyPenalty = shift.key !== 'spaet' ? tracker.earlyCount * 1.5 : 0;
-                const noise = Math.random() * 0.8;
-                return { member, score: hourScore + dayPressure + latePenalty + earlyPenalty + noise };
+                const hourDelta = projected - tracker.targetHours;
+                const hardRuleBreak = wouldBreakHardNightRule(schedule, day, shiftBand, member.name);
+                const avgLate = staff.length > 0 ? staff.reduce((sum, m) => sum + (trackers[m.name]?.lateCount || 0), 0) / staff.length : 0;
+                const avgNight = staff.length > 0 ? staff.reduce((sum, m) => sum + (trackers[m.name]?.nightCount || 0), 0) / staff.length : 0;
+                const hourScore = hourDelta > 0 ? hourDelta * 3.4 : Math.abs(hourDelta) * 0.65;
+                const dayPressure = tracker.workedDays.size * 1.8;
+                const latePenalty = shiftBand === 'spaet' ? Math.abs((tracker.lateCount + 1) - avgLate) * 4.2 : 0;
+                const nightPenalty = shiftBand === 'nacht' ? Math.abs((tracker.nightCount + 1) - avgNight) * 6.4 : 0;
+                const earlyPenalty = isEarlyBand(shiftBand) ? tracker.earlyCount * 1.8 : 0;
+                const hardRuleBreakPenalty = hardRuleBreak ? 120 : 0;
+                const noise = Math.random() * 0.9;
+                return {
+                  member,
+                  hardRuleBreak,
+                  score: hourScore + dayPressure + latePenalty + nightPenalty + earlyPenalty + hardRuleBreakPenalty + noise
+                };
               }).sort((a, b) => a.score - b.score);
 
             // Phase 1: alle Regeln aktiv
-            let pool = buildCandidates(false, false, false);
+            let pool = buildCandidates(false, false, false, false);
             // Phase 2: Stunden-Cap + MaxDays lockern (Schichtregeln + Doppelschicht bleiben hart)
-            if (pool.length < targetFill) pool = buildCandidates(true, true, false);
+            if (pool.length < targetFill) pool = buildCandidates(true, true, false, false);
             // Phase 3: auch FreeDays lockern — Schichtsperren bleiben das einzige harte Limit
-            if (pool.length < targetFill) pool = buildCandidates(true, true, true);
+            if (pool.length < targetFill) pool = buildCandidates(true, true, true, false);
+            // Phase 4 (Notfall): harte Nacht-Regeln dürfen nur hier gebrochen werden.
+            if (pool.length < targetFill) pool = buildCandidates(true, true, true, true);
 
             const chosen = [];
             for (const c of pool) {
               if (chosen.length >= targetFill) break;
-              if (!assignedToday.has(c.member.name)) chosen.push(c.member.name);
+              if (!assignedToday.has(c.member.name)) chosen.push(c);
             }
 
             // Always fill all slots — leave '' only if truly no eligible staff exists
-            schedule[day][shift.key] = Array.from({ length: targetFill }, (_, i) => chosen[i] || '');
+            schedule[day][shift.key] = Array.from({ length: targetFill }, (_, i) => chosen[i]?.member?.name || '');
 
-            chosen.forEach(name => {
+            chosen.forEach(candidate => {
+              const name = candidate?.member?.name;
+              if (!name) return;
               const tracker = trackers[name];
               if (!tracker) return;
               tracker.hours += shiftHours[shift.key];
               tracker.workedDays.add(day);
-              if (shift.key === 'spaet') tracker.lateCount += 1;
-              else tracker.earlyCount += 1;
+              if (shiftBand === 'spaet') tracker.lateCount += 1;
+              if (shiftBand === 'nacht') tracker.nightCount += 1;
+              if (isEarlyBand(shiftBand)) tracker.earlyCount += 1;
+              if (candidate.hardRuleBreak) tracker.ruleBreaks += 1;
               assignedToday.add(name);  // prevent double-shift same day
             });
           });
@@ -3198,10 +3516,12 @@
 
         // Penalty calculation
         let penalty = 0;
+        const avgLate = staff.length > 0 ? staff.reduce((s, m) => s + (trackers[m.name]?.lateCount || 0), 0) / staff.length : 0;
+        const avgNight = staff.length > 0 ? staff.reduce((s, m) => s + (trackers[m.name]?.nightCount || 0), 0) / staff.length : 0;
         staff.forEach(member => {
           const tracker = trackers[member.name];
-          const delta = tracker.hours - member.targetHours;
-          const tolerance = member.targetHours * dynamicTolerancePct;
+          const delta = tracker.hours - tracker.targetHours;
+          const tolerance = tracker.targetHours * dynamicTolerancePct;
           // Within ±10% tolerance: tiny penalty; outside: proportional
           if (Math.abs(delta) <= tolerance) {
             penalty += Math.abs(delta) * 0.5;
@@ -3209,6 +3529,9 @@
             penalty += (Math.abs(delta) - tolerance) * 3.0 + tolerance * 0.5;
           }
           if (tracker.workedDays.size > member.maxDays) penalty += (tracker.workedDays.size - member.maxDays) * 150;
+          penalty += Math.abs(tracker.lateCount - avgLate) * 3.5;
+          penalty += Math.abs(tracker.nightCount - avgNight) * 6.0;
+          penalty += tracker.ruleBreaks * 900;
           // Freitage-Regel: mind. 2 aufeinanderfolgende freie Tage (wenn möglich)
           const freeDays = DAYS.filter(day => !tracker.workedDays.has(day));
           const expectedFree = Math.max(1, DAYS.length - member.maxDays);
@@ -3225,9 +3548,6 @@
             }
             if (!hasConsecutivePair) penalty += 280;
           }
-          // Fairness: penalise uneven late distribution
-          const avgLate = staff.length > 0 ? staff.reduce((s, m) => s + (trackers[m.name]?.lateCount || 0), 0) / staff.length : 0;
-          penalty += Math.abs(tracker.lateCount - avgLate) * 4;
         });
 
         DAYS.forEach(day => {
@@ -3236,11 +3556,20 @@
             const filled = (schedule[day][shift.key] || []).filter(Boolean).length;
             const required = REQUIRED_STAFF_BY_SHIFT[shift.key] ?? 1;
             if (filled < required) {
-              const weight = shift.key === 'frueh1' ? 200 : shift.key === 'frueh2' ? 180 : 220;
+              const band = shiftBandByKey[shift.key];
+              const weight = isNightBand(band) ? 2200 : 1600;
               penalty += (required - filled) * weight;
             }
+            // Ziel: möglichst 2 MA pro Schicht, wenn Slots vorhanden sind.
+            const desired = Math.max(required, Math.min(2, slotCounts[day][shift.key]));
+            if (filled < desired) penalty += (desired - filled) * 120;
           });
         });
+
+        const validation = validateScheduleRules(schedule, staff);
+        penalty += validation.summary.consecutiveNightViolations * 600;
+        penalty += validation.summary.earlyAfterNightViolations * 600;
+        penalty += validation.summary.tooManyNightMembers * 120;
 
         if (penalty < bestPenalty) {
           bestPenalty = penalty;
@@ -3253,7 +3582,12 @@
       const holidayInfo = holidaySkipDays.size
         ? ` Feiertag(e) ausgelassen: ${[...holidaySkipDays].map(day => day.slice(0,2)).join(', ')}.`
         : '';
-      state.autoInfo = '⚡ Automatisch erzeugt am ' + new Date().toLocaleString('de-DE') + '. Faire Verteilung, keine Doppelschichten, Soll-Stunden werden nicht überschritten, alle Sperren werden eingehalten.' + holidayInfo;
+      const finalValidation = validateScheduleRules(bestSchedule, staff);
+      const hasHardRuleWarnings = finalValidation.summary.consecutiveNightViolations > 0 || finalValidation.summary.earlyAfterNightViolations > 0;
+      const hardRuleInfo = hasHardRuleWarnings
+        ? ` ⚠️ Notfall-Regelbrüche: Nachtfolge=${finalValidation.summary.consecutiveNightViolations}, Früh-nach-Nacht=${finalValidation.summary.earlyAfterNightViolations}.`
+        : ' ✅ Harte Nachtregeln eingehalten.';
+      state.autoInfo = '⚡ Automatisch erzeugt am ' + new Date().toLocaleString('de-DE') + '. Faire Verteilung, Schichtrotation für Spät/Nacht aktiv, Soll-Stunden gewichtet optimiert.' + holidayInfo + hardRuleInfo;
       autosave();
       render();
     }
@@ -3273,15 +3607,19 @@
       return candidates.slice(0, Math.min(maxDays, candidates.length));
     }
 
-    function getAssignedHoursForDay(schedule, day, memberName) {
+    function getAssignedHoursForDay(schedule, day, memberRef) {
+      const member = typeof memberRef === 'object' && memberRef
+        ? memberRef
+        : { id: String(memberRef ?? '').trim(), name: String(memberRef ?? '').trim() };
       return SHIFTS.reduce((sum, shift) => {
         const assigned = schedule?.[day]?.[shift.key] || [];
-        return assigned.includes(memberName) ? sum + shift.hours : sum;
+        const hasAssignment = assigned.some(token => isSameMemberToken(member, token));
+        return hasAssignment ? sum + shift.hours : sum;
       }, 0);
     }
 
     function getExpectedHoursForDay(member, day, schedule) {
-      const assignedHours = getAssignedHoursForDay(schedule, day, member.name);
+      const assignedHours = getAssignedHoursForDay(schedule, day, member);
       if (assignedHours > 0) return assignedHours;
       const weeklyHours = getMemberWeeklyHours(member);
       const baseDayHours = weeklyHours / 5;
@@ -3305,6 +3643,125 @@
       if (key.includes('spaet') || key.includes('spät') || /sp[äa]t/.test(label)) return 'spaet';
       if (key.includes('nacht') || /nacht/.test(label)) return 'nacht';
       return 'frueh1';
+    }
+
+    function isNightBand(band) {
+      return band === 'nacht';
+    }
+
+    function isEarlyBand(band) {
+      return band === 'frueh1' || band === 'frueh2';
+    }
+
+    function validateScheduleRules(schedule, staffList = state.staff) {
+      const memberWarningsByName = {};
+      const globalWarnings = [];
+      const shiftBandByKey = Object.fromEntries(SHIFTS.map(shift => [shift.key, getShiftVisualBand(shift)]));
+      const dayBandsByMember = Object.fromEntries((staffList || []).map(member => [member.name, {}]));
+      const workedDaysByMember = Object.fromEntries((staffList || []).map(member => [member.name, new Set()]));
+      const nightCountByMember = Object.fromEntries((staffList || []).map(member => [member.name, 0]));
+      const lookup = buildMemberLookup(staffList);
+      let totalNightAssignments = 0;
+
+      const addMemberWarning = (memberName, warning) => {
+        if (!memberName || !warning) return;
+        if (!memberWarningsByName[memberName]) memberWarningsByName[memberName] = [];
+        memberWarningsByName[memberName].push(warning);
+      };
+
+      DAYS.forEach(day => {
+        SHIFTS.forEach(shift => {
+          const band = shiftBandByKey[shift.key];
+          (schedule?.[day]?.[shift.key] || []).filter(Boolean).forEach(token => {
+            const member = resolveMemberFromToken(token, lookup);
+            const name = member?.name;
+            if (!name) return;
+            if (!dayBandsByMember[name]) dayBandsByMember[name] = {};
+            if (!dayBandsByMember[name][day]) dayBandsByMember[name][day] = new Set();
+            dayBandsByMember[name][day].add(band);
+            if (!workedDaysByMember[name]) workedDaysByMember[name] = new Set();
+            workedDaysByMember[name].add(day);
+            if (isNightBand(band)) {
+              nightCountByMember[name] = (nightCountByMember[name] || 0) + 1;
+              totalNightAssignments += 1;
+            }
+          });
+        });
+      });
+
+      let consecutiveNightViolations = 0;
+      let earlyAfterNightViolations = 0;
+      let tooManyNightMembers = 0;
+
+      (staffList || []).forEach(member => {
+        const name = member.name;
+        const workedDays = workedDaysByMember[name]?.size || 0;
+        const nightCount = nightCountByMember[name] || 0;
+        const dayBands = dayBandsByMember[name] || {};
+
+        if (workedDays > member.maxDays) {
+          addMemberWarning(name, `Zu viele Arbeitstage: ${workedDays}/${member.maxDays}.`);
+        }
+
+        let nightStreak = 0;
+        for (let i = 0; i < DAYS.length; i++) {
+          const day = DAYS[i];
+          const bands = dayBands[day] || new Set();
+          const hasNight = bands.has('nacht');
+          if (hasNight) {
+            nightStreak += 1;
+            if (nightStreak > 2) {
+              consecutiveNightViolations += 1;
+              addMemberWarning(name, `${day}: mehr als 2 Nachtdienste in Folge.`);
+            }
+          } else {
+            nightStreak = 0;
+          }
+
+          if (i > 0) {
+            const prevDay = DAYS[i - 1];
+            const prevBands = dayBands[prevDay] || new Set();
+            const hasPrevNight = prevBands.has('nacht');
+            const hasEarlyToday = bands.has('frueh1') || bands.has('frueh2');
+            if (hasPrevNight && hasEarlyToday) {
+              earlyAfterNightViolations += 1;
+              addMemberWarning(name, `${day}: Frühdienst direkt nach Nachtdienst (${prevDay}).`);
+            }
+          }
+        }
+
+        const activeStaffCount = Math.max(1, (staffList || []).length);
+        const avgNight = totalNightAssignments / activeStaffCount;
+        const recommendedNightMax = Math.max(2, Math.ceil(avgNight + 1));
+        if (nightCount > recommendedNightMax) {
+          tooManyNightMembers += 1;
+          addMemberWarning(name, `Zu viele Nachtdienste: ${nightCount} (Richtwert: ${recommendedNightMax}).`);
+        }
+      });
+
+      if (consecutiveNightViolations > 0) {
+        globalWarnings.push(`Regelbruch: ${consecutiveNightViolations}x mehr als 2 Nachtdienste in Folge.`);
+      }
+      if (earlyAfterNightViolations > 0) {
+        globalWarnings.push(`Regelbruch: ${earlyAfterNightViolations}x Frühdienst direkt nach Nachtdienst.`);
+      }
+      if (tooManyNightMembers > 0) {
+        globalWarnings.push(`Nachtverteilung unausgewogen bei ${tooManyNightMembers} Mitarbeitenden.`);
+      }
+
+      Object.keys(memberWarningsByName).forEach(name => {
+        memberWarningsByName[name] = [...new Set(memberWarningsByName[name])];
+      });
+
+      return {
+        memberWarningsByName,
+        globalWarnings: [...new Set(globalWarnings)],
+        summary: {
+          consecutiveNightViolations,
+          earlyAfterNightViolations,
+          tooManyNightMembers,
+        },
+      };
     }
 
     function getCurrentWeekDateSet() {
@@ -3336,30 +3793,6 @@
       render();
     }
 
-    async function loadPublicHolidaysForCurrentWeek(countryCode) {
-      const weekSet = getCurrentWeekDateSet();
-      if (!weekSet.size) return { added: 0, total: 0 };
-      const supportedCountries = new Set(HOLIDAY_COUNTRIES.map(c => c.code));
-      if (!supportedCountries.has(countryCode)) throw new Error('UNSUPPORTED_COUNTRY');
-      const years = [...new Set([...weekSet].map(date => Number(date.slice(0, 4))))];
-      const allRows = [];
-
-      for (const year of years) {
-        const res = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/${countryCode}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const rows = await res.json();
-        allRows.push(...rows);
-      }
-
-      const matchedDates = allRows.map(row => row.date).filter(date => weekSet.has(date));
-      const mergedSet = new Set(state.holidayDates || []);
-      matchedDates.forEach(date => mergedSet.add(date));
-      const merged = [...mergedSet].sort();
-      const added = merged.length - (state.holidayDates || []).length;
-      state.holidayDates = merged;
-      return { added, total: matchedDates.length };
-    }
-
     async function loadPublicHolidaysForYear(countryCode, year) {
       const supportedCountries = new Set(HOLIDAY_COUNTRIES.map(c => c.code));
       if (!supportedCountries.has(countryCode)) throw new Error('UNSUPPORTED_COUNTRY');
@@ -3386,14 +3819,18 @@
       const holidays = new Set(Array.isArray(holidayDates) ? holidayDates : []);
       return DAYS.map(day => {
         const date = getDateByDayName(weekStartDate, day);
-        const assignedHours = getAssignedHoursForDay(schedule, day, member.name);
+        const assignedHours = getAssignedHoursForDay(schedule, day, member);
         const expectedHours = getExpectedHoursForDay(member, day, schedule);
         const isVacation = (member.vacationBlocks || []).some(block => blockContainsDate(block, date));
         const isSick = (member.sickBlocks || []).some(block => blockContainsDate(block, date));
+        const isStatusVacation = member?.status === 'urlaub';
+        const isStatusSick = member?.status === 'krankenstand';
         const isHoliday = holidays.has(date) && isHolidayCounted(date, holidayCountByDate);
 
         if (isVacation) return { type: CALENDAR_EVENT_TYPES.VACATION, day, date, hours: expectedHours };
         if (isSick) return { type: CALENDAR_EVENT_TYPES.SICK, day, date, hours: expectedHours };
+        if (!isVacation && !isSick && isStatusVacation && expectedHours > 0) return { type: CALENDAR_EVENT_TYPES.VACATION, day, date, hours: expectedHours };
+        if (!isVacation && !isSick && isStatusSick && expectedHours > 0) return { type: CALENDAR_EVENT_TYPES.SICK, day, date, hours: expectedHours };
         if (isHoliday) return { type: CALENDAR_EVENT_TYPES.HOLIDAY, day, date, hours: expectedHours > 0 ? expectedHours : 0 };
         return { type: CALENDAR_EVENT_TYPES.WORK, day, date, hours: assignedHours };
       });
@@ -3401,14 +3838,18 @@
 
     // ── STATS: collect stats from any archive entry (or current state) ───────
     function collectStatsFromEntry(entry) {
-      const staff = entry.staff || [];
+      const staff = (entry.staff || []).map(normalizeMember);
       const schedule = entry.schedule || {};
       const holidayDates = entry.holidayDates || [];
       const holidayCountByDate = entry.holidayCountByDate && typeof entry.holidayCountByDate === 'object' ? entry.holidayCountByDate : {};
+      const lookup = buildMemberLookup(staff);
+      const unresolvedAssignments = new Set();
       const result = staff.map(m => ({
         ...m,
         weeklyHours: getMemberWeeklyHours(m),
-        targetHours: getMemberWeeklyHours(m),
+        nominalTargetHours: getMemberWeeklyHours(m),
+        targetHours: getMemberEffectiveTargetHours(m),
+        capacityHours: getMemberWeeklyCapacityHours(m),
         maxVacationHours: getMemberVacationHours(m),
         plannedHours: 0,
         workedDays: 0,
@@ -3429,15 +3870,21 @@
         const seenToday = new Set();
         SHIFTS.forEach(shift => {
           const assigned = schedule[day]?.[shift.key] || [];
-          assigned.filter(Boolean).forEach(name => {
-            const person = byName[name];
+          assigned.filter(Boolean).forEach(token => {
+            const rawToken = String(token ?? '').trim();
+            const resolvedMember = resolveMemberFromToken(rawToken, lookup);
+            const person = resolvedMember ? byName[resolvedMember.name] : null;
+            if (!person) {
+              if (rawToken) unresolvedAssignments.add(rawToken);
+              return;
+            }
             if (!person) return;
             if (isUnavailable(person)) {
               person.warnings.push(`${day}: eingeplant trotz ${person.status}.`);
             }
-            if (!seenToday.has(name)) {
+            if (!seenToday.has(person.name)) {
               person.workedDays += 1;
-              seenToday.add(name);
+              seenToday.add(person.name);
             }
             if (!person.dayDetail[day]) person.dayDetail[day] = [];
             person.dayDetail[day].push(shift.label);
@@ -3446,7 +3893,13 @@
             if ((person.blockedDays || []).includes(day))
               person.warnings.push(`${day} ist gesperrt aber eingeplant.`);
           });
-          const dups = assigned.filter(Boolean).filter((n, i, a) => a.indexOf(n) !== i);
+          const normalizedAssigned = assigned
+            .filter(Boolean)
+            .map(token => {
+              const resolved = resolveMemberFromToken(token, lookup);
+              return normalizePersonToken(resolved?.name || token);
+            });
+          const dups = normalizedAssigned.filter((n, i, a) => a.indexOf(n) !== i);
           if (dups.length && result[0]) result[0].warnings.push(`${day} ${shift.label}: Doppeleinplanung.`);
         });
       });
@@ -3474,11 +3927,17 @@
 
       const globalWarnings = [];
       result.forEach(person => {
+        if (person.nominalTargetHours > person.targetHours) {
+          person.warnings.push(`Soll ${person.nominalTargetHours}h > realistische Kapazität ${person.targetHours}h (Max.Tage/Regeln).`);
+        }
         if (person.workedDays > person.maxDays) person.warnings.push(`${person.workedDays} Tage > Max. ${person.maxDays}.`);
-        const delta = Math.round((person.plannedHours - person.weeklyHours) * 10) / 10;
+        const delta = Math.round((person.plannedHours - person.targetHours) * 10) / 10;
         if (delta > 0) person.warnings.push(`+${delta}h über Soll.`);
         if (delta < 0) person.warnings.push(`${delta}h unter Soll.`);
       });
+      if (unresolvedAssignments.size) {
+        globalWarnings.push(`Nicht zuordenbare Zuordnungen gefunden: ${[...unresolvedAssignments].slice(0, 5).join(', ')}${unresolvedAssignments.size > 5 ? ' …' : ''}.`);
+      }
       DAYS.forEach(day => {
         SHIFTS.forEach(shift => {
           const filled = (schedule[day]?.[shift.key] || []).filter(Boolean).length;
@@ -3486,7 +3945,14 @@
             globalWarnings.push(`${day} ${shift.label}: Unterbesetzt.`);
         });
       });
-      return { result, globalWarnings };
+      const validation = validateScheduleRules(schedule, staff);
+      result.forEach(person => {
+        (validation.memberWarningsByName[person.name] || []).forEach(warning => person.warnings.push(warning));
+        person.warnings = [...new Set(person.warnings)];
+      });
+      globalWarnings.push(...validation.globalWarnings);
+      const dedupedGlobalWarnings = [...new Set(globalWarnings)];
+      return { result, globalWarnings: dedupedGlobalWarnings };
     }
 
     // ── STATS: render a single week's evaluation into a container ────────────
@@ -3520,8 +3986,8 @@
 
       // Person cards
       result.forEach(person => {
-        const delta = person.plannedHours - person.weeklyHours;
-        const pct = Math.min(100, Math.round((person.plannedHours / (person.weeklyHours || 1)) * 100));
+        const delta = person.plannedHours - person.targetHours;
+        const pct = Math.min(100, Math.round((person.plannedHours / (person.targetHours || 1)) * 100));
         const barColor = delta > 2 ? '#f59e0b' : delta < -2 ? '#ef4444' : '#22c55e';
         const statusEmoji = person.status === 'urlaub' ? '🌴' : person.status === 'krankenstand' ? '🤒' : '✅';
 
@@ -3550,7 +4016,7 @@
             <div class="stats-person-name">${statusEmoji} ${person.name}</div>
             <div style="display:flex; flex-wrap:wrap; gap:5px; align-items:center;">
               <span class="capsule">${person.plannedHours}h geplant</span>
-              <span class="capsule">Soll ${person.weeklyHours}h</span>
+              <span class="capsule">Soll ${person.targetHours}h</span>
               <span class="capsule" style="background:${delta>0?'#fef3c7':delta<0?'#fee2e2':'#dcfce7'}; border-color:${delta>0?'#fcd34d':delta<0?'#fca5a5':'#86efac'};">${delta>=0?'+':''}${delta}h</span>
               <span class="capsule">${person.workedDays} Tage</span>
               ${person.workHours ? `<span class="capsule">🕒 Arbeit ${person.workHours}h</span>` : ''}
@@ -3589,7 +4055,7 @@
           if (!personMap[person.name]) {
             personMap[person.name] = {
               name: person.name,
-              targetHours: person.weeklyHours,
+              targetHours: person.targetHours,
               totalPlannedHours: 0,
               totalWorkedDays: 0,
               totalUrlaubWeeks: 0,
@@ -3600,7 +4066,7 @@
             };
           }
           const agg = personMap[person.name];
-          const delta = person.plannedHours - person.weeklyHours;
+          const delta = person.plannedHours - person.targetHours;
           agg.totalPlannedHours += person.plannedHours;
           agg.totalWorkedDays += person.workedDays;
           agg.totalDelta += delta;
@@ -3759,7 +4225,24 @@
         return;
       }
 
+      let lastMonthKey = '';
       state.history.forEach(entry => {
+        const monthDate = entry.weekStartDate ? new Date(`${entry.weekStartDate}T12:00:00`) : null;
+        const hasValidMonthDate = monthDate && !Number.isNaN(monthDate.getTime());
+        const monthKey = hasValidMonthDate
+          ? `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`
+          : 'ohne-monat';
+        if (monthKey !== lastMonthKey) {
+          const divider = document.createElement('div');
+          divider.className = 'stats-month-divider';
+          const monthLabel = hasValidMonthDate
+            ? monthDate.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
+            : 'Ohne Datum';
+          divider.innerHTML = `<span class="stats-month-label">${monthLabel}</span>`;
+          list.appendChild(divider);
+          lastMonthKey = monthKey;
+        }
+
         const wrap = document.createElement('div');
         wrap.style.cssText = 'display:flex; align-items:stretch; gap:0; margin-bottom:6px;';
 
@@ -3781,15 +4264,7 @@
         delBtn.title = 'Woche löschen';
         delBtn.style.cssText = 'padding:6px 10px; font-size:13px; color:#dc2626; border-color:#fca5a5; background:#fff5f5; border-radius:0 12px 12px 0; border-left:none; cursor:pointer; font-family:inherit;';
         delBtn.addEventListener('click', () => {
-          if (!confirm(`Woche „${entry.weekLabel || 'Wochenplan'}" wirklich löschen?`)) return;
-          state.history = state.history.filter(e => e.id !== entry.id);
-          localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history));
-          if (state.selectedStatsWeekId === entry.id) {
-            state.selectedStatsWeekId = '';
-            document.getElementById('statsWeekContent').innerHTML = '<div class="notice small muted">Wähle eine gespeicherte Woche aus.</div>';
-          }
-          renderStatsWeekList();
-          renderArchive();
+          deleteArchiveEntry(entry.id);
         });
 
         wrap.appendChild(pill);
@@ -3798,7 +4273,7 @@
       });
     }
 
-    // Keep old renderStats as a thin wrapper for backward compat (called on schedule changes)
+    // Central stats refresh entrypoint (kept for compatibility with older hooks/calls).
     function renderStats() {
       // Only refresh if stats tab is active and week mode showing
       if (state.selectedStatsWeekId) {
@@ -3942,30 +4417,62 @@
       }
     }
 
+    function getAssignedNamesByDay(dayName, lookup = buildMemberLookup(state.staff)) {
+      const seen = new Set();
+      const names = [];
+      SHIFTS.forEach(shift => {
+        const slots = state.schedule?.[dayName]?.[shift.key] || [];
+        slots.forEach(token => {
+          const raw = String(token || '').trim();
+          if (!raw) return;
+          const resolved = resolveMemberFromToken(raw, lookup);
+          const displayName = String(resolved?.name || raw).trim();
+          const identityKey = normalizePersonToken(resolved?.id || resolved?.name || raw);
+          if (!displayName || !identityKey || seen.has(identityKey)) return;
+          seen.add(identityKey);
+          names.push(displayName);
+        });
+      });
+      return names;
+    }
+
+    function buildDutyLineHtml(assignedNames) {
+      if (!assignedNames.length) {
+        return '<span class="duty-prefix">Dienst:</span><span class="duty-empty">Kein Dienst</span>';
+      }
+      return `<span class="duty-prefix">Dienst:</span>${assignedNames.map(name => `<span class="duty-person">${escapeHtml(name)}</span>`).join('')}`;
+    }
+
     function renderWeekStrip() {
       const weekDates = getWeekDates(new Date(`${state.weekStartDate}T12:00:00`));
       const holidaySet = getKnownHolidayDateSet();
       const strip = document.getElementById('weekStrip');
       strip.innerHTML = '';
+      const memberLookup = buildMemberLookup(state.staff);
+
       weekDates.forEach((date, index) => {
         const dayName = DAYS[index];
         const dateStr = date.toISOString().slice(0, 10);
         const isHoliday = holidaySet.has(dateStr);
         const holidayCounts = isHolidayCounted(dateStr);
-        const vacationNames = state.staff
-          .filter(member => getMemberDayAbsenceType(member, dateStr) === 'urlaub')
-          .map(member => member.name);
-        const sickNames = state.staff
-          .filter(member => getMemberDayAbsenceType(member, dateStr) === 'krank')
-          .map(member => member.name);
+        const assignedNames = getAssignedNamesByDay(dayName, memberLookup);
+        const assignedText = assignedNames.length ? assignedNames.join(', ') : 'Kein Dienst';
+        const assignedLineHtml = buildDutyLineHtml(assignedNames);
         const item = document.createElement('div');
         item.className = 'week-day';
-        item.innerHTML = `<div class="day-name">${DAYS[index].slice(0,2)}</div><div class="day-date">${date.toLocaleDateString('de-DE')}</div>`;
+        item.innerHTML = `
+          <div class="day-name">${DAYS[index].slice(0,2)}</div>
+          <div class="day-date">${date.toLocaleDateString('de-DE')}</div>
+          <div class="day-duty-line" title="${escapeHtml(`Dienst: ${assignedText}`)}">${assignedLineHtml}</div>
+        `;
         strip.appendChild(item);
         const head = document.getElementById(`head-${dayName}`);
         if (head) {
           head.classList.remove('holiday-head');
-          head.innerHTML = `<div class="day-head">${dayName}</div><div class="day-date-small">${date.toLocaleDateString('de-DE')}</div>`;
+          head.innerHTML = `
+            <div class="day-head">${dayName}</div>
+            <div class="day-date-small">${date.toLocaleDateString('de-DE')}</div>
+          `;
           if (isHoliday) {
             head.classList.add('holiday-head');
             head.innerHTML += `
@@ -3975,40 +4482,21 @@
                 Feiertag zählt? ${holidayCounts ? 'Ja' : 'Nein'}
               </label>
             `;
-            if (vacationNames.length || sickNames.length) {
-              head.innerHTML += `
-                <div class="holiday-head-note" style="display:block; margin-top:6px; background:var(--holiday-toggle-bg); color:var(--holiday-toggle-text);">
-                  ${vacationNames.length ? `🌴 Urlaub: ${vacationNames.join(', ')}` : ''}
-                  ${vacationNames.length && sickNames.length ? ' · ' : ''}
-                  ${sickNames.length ? `🤒 Krank: ${sickNames.join(', ')}` : ''}
-                </div>
-              `;
-            }
             const checkbox = head.querySelector('.holiday-count-checkbox');
             if (checkbox) {
               checkbox.addEventListener('change', (e) => {
                 setHolidayCountForDate(dateStr, e.target.checked);
               });
             }
-          } else if (vacationNames.length || sickNames.length) {
-            head.innerHTML += `
-              <div class="holiday-head-note" style="display:block; margin-top:6px; background:var(--holiday-note-muted-bg); color:var(--holiday-note-muted-text);">
-                ${vacationNames.length ? `🌴 Urlaub: ${vacationNames.join(', ')}` : ''}
-                ${vacationNames.length && sickNames.length ? ' · ' : ''}
-                ${sickNames.length ? `🤒 Krank: ${sickNames.join(', ')}` : ''}
-              </div>
-            `;
           }
         }
       });
     }
 
-    // Returns eligible staff for a given shift (respects noFrueh, noSpaet, unavailable)
+    // Returns eligible staff for a given shift using explicit UI rules only.
     function eligibleForShift(shiftKey) {
       return availableStaff().filter(member => {
         if (isShiftBlocked(member, shiftKey)) return false;
-        if (isEarlyOnly(member.notes) && shiftKey === 'spaet') return false;
-        if (isLateBlocked(member.notes) && shiftKey === 'spaet') return false;
         return true;
       });
     }
@@ -4038,8 +4526,6 @@
       // Check shift rule violation for a member
       const hasRuleViolation = (member) => {
         if (isShiftBlocked(member, shift.key)) return getRestrictionLabelForShiftKey(shift.key, shift.label);
-        if (isEarlyOnly(member.notes) && shift.key === 'spaet') return 'Nur Frühdienst';
-        if (isLateBlocked(member.notes) && shift.key === 'spaet') return 'Keine Spätschicht';
         return null;
       };
 
@@ -4139,6 +4625,8 @@
           removeBtn.title = 'Slot entfernen';
           removeBtn.style.cssText = 'padding:5px 9px; font-size:13px; color:#dc2626; border-color:#fca5a5; background:#fff5f5; border-radius:8px; flex-shrink:0;';
           removeBtn.addEventListener('click', () => {
+            if (!confirmDeleteAction(`Slot in ${day} · ${shift.label} wirklich löschen?`)) return;
+            pushDeleteUndoSnapshot(`Slot gelöscht (${day} · ${shift.label})`, { schedule: state.schedule });
             state.schedule[day][shift.key].splice(i, 1);
             if (state.schedule[day][shift.key].length === 0) state.schedule[day][shift.key] = [''];
             buildShiftCell(day, shift, td);
@@ -4202,11 +4690,11 @@
         console.error('mobileSchedule container not found!');
         return;
       }
-      console.log('renderMobileSchedule called, active shift:', mobileActiveShift);
       container.innerHTML = '';
 
       const weekDates = getWeekDates(new Date(`${state.weekStartDate}T12:00:00`));
       const holidaySet = getKnownHolidayDateSet();
+      const memberLookup = buildMemberLookup(state.staff);
 
       // Shift tab bar
       const tabBar = document.createElement('div');
@@ -4236,6 +4724,9 @@
         const dateStr = getDateByDayName(state.weekStartDate, day);
         const isHoliday = holidaySet.has(dateStr);
         const holidayCounts = isHolidayCounted(dateStr);
+        const assignedNames = getAssignedNamesByDay(day, memberLookup);
+        const assignedText = assignedNames.length ? assignedNames.join(', ') : 'Kein Dienst';
+        const assignedLineHtml = buildDutyLineHtml(assignedNames);
         if (isHoliday) {
           card.classList.add('holiday-column');
           if (!holidayCounts) card.classList.add('holiday-off');
@@ -4250,6 +4741,12 @@
         dateLabel.className = 'day-date-label';
         dateLabel.textContent = weekDates[idx].toLocaleDateString('de-DE');
         card.appendChild(dateLabel);
+
+        const dutyLine = document.createElement('div');
+        dutyLine.className = 'day-duty-line';
+        dutyLine.innerHTML = assignedLineHtml;
+        dutyLine.title = `Dienst: ${assignedText}`;
+        card.appendChild(dutyLine);
 
         if (isHoliday) {
           const holidayRow = document.createElement('div');
@@ -4280,7 +4777,6 @@
           if (!state.schedule[day][shift.key]) state.schedule[day][shift.key] = [''];
 
           const slots = state.schedule[day][shift.key];
-          console.log('renderSlots for', day, shift.key, ':', JSON.stringify(slots));
           
           // Ensure there's always at least one slot
           if (slots.length === 0) slots.push('');
@@ -4347,6 +4843,8 @@
               rmBtn.addEventListener('click', (ev) => {
                 ev.preventDefault();
                 ev.stopPropagation();
+                if (!confirmDeleteAction(`Slot in ${day} · ${shift.label} wirklich löschen?`)) return;
+                pushDeleteUndoSnapshot(`Slot gelöscht (${day} · ${shift.label})`, { schedule: state.schedule });
                 state.schedule[day][shift.key].splice(i, 1);
                 if (!state.schedule[day][shift.key].length) state.schedule[day][shift.key] = [''];
                 renderSlots();
@@ -4388,8 +4886,6 @@
           // Force re-render
           renderSlots();
           autosave();
-          
-          console.log('Slot added!', day, shift.key, state.schedule[day][shift.key]);
         });
         card.appendChild(addBtn);
 
@@ -4528,6 +5024,11 @@
 
       document.querySelectorAll('.remove-holiday-btn').forEach(btn => {
         btn.addEventListener('click', () => {
+          if (!confirmDeleteAction(`Feiertag ${formatDateLabel(btn.dataset.date)} wirklich entfernen?`)) return;
+          pushDeleteUndoSnapshot(`Feiertag entfernt (${formatDateLabel(btn.dataset.date)})`, {
+            holidayDates: state.holidayDates,
+            holidayCountByDate: state.holidayCountByDate,
+          });
           state.holidayDates = (state.holidayDates || []).filter(d => d !== btn.dataset.date);
           delete state.holidayCountByDate[btn.dataset.date];
           autosave();
@@ -4622,6 +5123,8 @@
             e.stopPropagation();
             const idx = Number(btn.dataset.index);
             if (Number.isNaN(idx) || !blocks[idx]) return;
+            if (!confirmDeleteAction(`${type === 'urlaub' ? 'Urlaubs' : 'Krankenstands'}-Block wirklich löschen?`)) return;
+            pushDeleteUndoSnapshot(`${type === 'urlaub' ? 'Urlaubs' : 'Krankenstands'}-Block gelöscht (${member.name})`, { staff: state.staff });
             blocks.splice(idx, 1);
             if (currentSelection.editingIndex === idx) {
               currentSelection = { startDate: null, endDate: null, days: 0, selectedDates: [], editingIndex: null, lastSelectedDate: null };
@@ -4976,6 +5479,11 @@
           });
         });
         top.querySelector('[data-remove]').addEventListener('click', () => {
+          if (!confirmDeleteAction(`Mitarbeiter „${member.name}“ wirklich löschen?`)) return;
+          pushDeleteUndoSnapshot(`Mitarbeiter gelöscht (${member.name})`, {
+            staff: state.staff,
+            schedule: state.schedule,
+          });
           state.staff = state.staff.filter(entry => entry.id !== member.id);
           removeNameFromSchedule(member.name);
           autosave(); render();
@@ -5085,60 +5593,6 @@
       });
     }
 
-    function renderStats() {
-      const { result, globalWarnings } = collectStats();
-      const statsList = document.getElementById('statsList');
-      const warningList = document.getElementById('warningList');
-      statsList.innerHTML = '';
-      warningList.innerHTML = '';
-
-      result.forEach(person => {
-        const delta = person.plannedHours - person.targetHours;
-        const item = document.createElement('div');
-        item.className = 'stat-item';
-        const statusEmoji = person.status === 'urlaub' ? '🌴' : person.status === 'krankenstand' ? '🤒' : '✅';
-        const ruleTags = [];
-        getBlockedShiftKeys(person).forEach(shiftKey => {
-          ruleTags.push(`<span class="capsule" style="background:#fef2f2;border-color:#fca5a5;color:#b91c1c;">${escapeHtml(getRestrictionLabelForShiftKey(shiftKey, getShiftLabelByKey(shiftKey)))}</span>`);
-        });
-        if ((person.blockedDays||[]).length) ruleTags.push(`<span class="capsule" style="background:#fdf4ec;border-color:#fdba74;color:#92400e;">Gesperrt: ${person.blockedDays.map(d=>d.slice(0,2)).join(', ')}</span>`);
-        item.innerHTML = `
-          <div class="stat-head">
-            <div style="font-weight:700; font-size:15px;">${statusEmoji} ${person.name}</div>
-          </div>
-          <div class="capsule-row">
-            <span class="capsule">${person.plannedHours}h geplant</span>
-            <span class="capsule">${person.workedDays} Tage</span>
-            <span class="capsule" style="${delta > 0 ? 'background:#fef3c7;border-color:#fcd34d;' : delta < 0 ? 'background:#fee2e2;border-color:#fca5a5;' : 'background:#d0eed8;border-color:#7dbf8e;'}">${delta > 0 ? '+' : ''}${delta}h</span>
-            <span class="capsule">Soll: ${person.targetHours}h</span>
-            ${ruleTags.join('')}
-          </div>
-          <div class="small muted" style="margin-top:6px;">${person.notes || 'Keine Notiz'} · Max. ${person.maxDays} Tage</div>
-        `;
-        statsList.appendChild(item);
-        person.warnings.forEach(warning => {
-          const w = document.createElement('div');
-          w.className = 'notice warning';
-          w.textContent = '⚠️ ' + warning;
-          warningList.appendChild(w);
-        });
-      });
-
-      globalWarnings.forEach(warning => {
-        const w = document.createElement('div');
-        w.className = 'notice warning';
-        w.textContent = '⚠️ ' + warning;
-        warningList.appendChild(w);
-      });
-
-      if (!warningList.children.length) {
-        const ok = document.createElement('div');
-        ok.className = 'notice ok';
-        ok.textContent = '✅ Keine Konflikte erkannt.';
-        warningList.appendChild(ok);
-      }
-    }
-
     function renderArchive() {
       const archive = document.getElementById('archiveList');
       archive.innerHTML = '';
@@ -5149,7 +5603,23 @@
         archive.appendChild(empty);
         return;
       }
+      let lastMonthKey = '';
       state.history.forEach(entry => {
+        const monthDate = entry.weekStartDate ? new Date(`${entry.weekStartDate}T12:00:00`) : null;
+        const hasValidMonthDate = monthDate && !Number.isNaN(monthDate.getTime());
+        const monthKey = hasValidMonthDate
+          ? `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`
+          : 'ohne-monat';
+        if (monthKey !== lastMonthKey) {
+          const divider = document.createElement('div');
+          divider.className = 'archive-month-divider';
+          const monthLabel = hasValidMonthDate
+            ? monthDate.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
+            : 'Ohne Datum';
+          divider.innerHTML = `<span class="archive-month-label">${monthLabel}</span>`;
+          archive.appendChild(divider);
+          lastMonthKey = monthKey;
+        }
         const item = document.createElement('div');
         item.className = 'archive-item';
         item.innerHTML = `
@@ -5322,6 +5792,25 @@
       URL.revokeObjectURL(url);
     }
 
+    function calculateShiftHoursFromTimeRange(timeRange) {
+      const text = String(timeRange || '').trim();
+      if (!text) return null;
+      const parts = text.split(/\s*[-–—]\s*/);
+      if (parts.length !== 2) return null;
+      const parsePart = (value) => {
+        const match = String(value).trim().match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+        if (!match) return null;
+        return Number(match[1]) * 60 + Number(match[2]);
+      };
+      const startMin = parsePart(parts[0]);
+      const endMin = parsePart(parts[1]);
+      if (startMin === null || endMin === null) return null;
+      let diffMin = endMin - startMin;
+      if (diffMin <= 0) diffMin += 24 * 60; // supports overnight times (e.g. 22:00-06:00)
+      const rawHours = diffMin / 60;
+      return Math.max(0, Math.round(rawHours * 2) / 2); // keep in 0.5h steps
+    }
+
     function renderShiftConfig() {
       const list = document.getElementById('shiftConfigList');
       if (!list) return;
@@ -5353,6 +5842,14 @@
           } else {
             SHIFTS[idx][field] = String(e.target.value || '').trim() || (field === 'label' ? `Schicht ${idx + 1}` : '08:00-16:00');
             e.target.value = SHIFTS[idx][field];
+            if (field === 'time') {
+              const autoHours = calculateShiftHoursFromTimeRange(SHIFTS[idx].time);
+              if (autoHours !== null) {
+                SHIFTS[idx].hours = autoHours;
+                const hoursInput = row.querySelector('input[data-shift-field="hours"]');
+                if (hoursInput) hoursInput.value = String(autoHours);
+              }
+            }
           }
           ensureScheduleMatchesShifts();
           autosave();
@@ -5368,6 +5865,13 @@
         btn.addEventListener('click', () => {
           if (SHIFTS.length <= 1) return;
           const idx = Number(btn.dataset.shiftRemove);
+          const shiftLabel = SHIFTS[idx]?.label || 'Schicht';
+          if (!confirmDeleteAction(`Schicht „${shiftLabel}“ wirklich löschen?`)) return;
+          pushDeleteUndoSnapshot(`Schicht gelöscht (${shiftLabel})`, {
+            shifts: SHIFTS,
+            schedule: state.schedule,
+            staff: state.staff,
+          });
           SHIFTS.splice(idx, 1);
           ensureScheduleMatchesShifts();
           autosave();
@@ -5472,6 +5976,7 @@
       renderStaffAccordions();
       renderStatsWeekList();
       renderArchive();
+      updateUndoDeleteButtons();
       applyMobileMenuState();
     }
 
@@ -5488,7 +5993,15 @@
         // Check if date actually changed
         if (oldDate && oldDate !== newDate) {
           // Date changed - ask user if they want to reset the schedule
-          if (confirm('Neues Datum ausgewählt. Wochenplan zurücksetzen (alle Mitarbeiter entfernen)?')) {
+          if (confirmDeleteAction('Neues Datum ausgewählt. Wochenplan zurücksetzen (alle Mitarbeiter entfernen)?')) {
+            pushDeleteUndoSnapshot('Wochenplan durch Datumswechsel geleert', {
+              weekLabel: state.weekLabel,
+              weekStartDate: state.weekStartDate,
+              savedAt: state.savedAt,
+              schedule: state.schedule,
+              holidayDates: state.holidayDates,
+              holidayCountByDate: state.holidayCountByDate,
+            });
             // Reset schedule to empty
             state.schedule = {};
             DAYS.forEach(day => {
@@ -5517,6 +6030,7 @@
       document.getElementById('jsonBtn').addEventListener('click', exportJson);
       document.getElementById('resetBtn').addEventListener('click', resetPlan);
       document.getElementById('settingsBtn').addEventListener('click', openSettingsModal);
+      document.getElementById('undoDeleteBtn').addEventListener('click', undoLastDeleteAction);
       document.getElementById('closeSettingsBtn').addEventListener('click', closeSettingsModal);
       document.getElementById('settingsModal').addEventListener('click', (e) => {
         if (e.target.id === 'settingsModal') closeSettingsModal();
@@ -5571,65 +6085,15 @@
         autosave();
         render();
       });
-      const holidayDateInput = document.getElementById('holidayDateInput');
-      const addHolidayBtn = document.getElementById('addHolidayBtn');
       const holidayCountrySelect = document.getElementById('holidayCountrySelect');
-      const fetchHolidaysBtn = document.getElementById('fetchHolidaysBtn');
-      const holidayFetchInfo = document.getElementById('holidayFetchInfo');
       const holidayYearInput = document.getElementById('holidayYearInput');
       const fetchYearHolidaysBtn = document.getElementById('fetchYearHolidaysBtn');
       const holidayYearInfo = document.getElementById('holidayYearInfo');
-      const addHolidayDate = () => {
-        const date = holidayDateInput?.value;
-        if (!date) return;
-        const weekSet = getCurrentWeekDateSet();
-        if (!weekSet.has(date)) {
-          alert('Feiertage können nur innerhalb der aktuell gewählten Woche eingetragen werden.');
-          return;
-        }
-        if (!state.holidayDates.includes(date)) {
-          state.holidayDates.push(date);
-          state.holidayDates.sort();
-          state.holidayCountByDate[date] = true;
-          autosave();
-          render();
-        }
-        holidayDateInput.value = '';
-      };
-      if (addHolidayBtn) addHolidayBtn.addEventListener('click', addHolidayDate);
-      if (holidayDateInput) {
-        holidayDateInput.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') addHolidayDate();
-        });
-      }
       if (holidayCountrySelect) {
         holidayCountrySelect.value = state.holidayCountry || 'AT';
         holidayCountrySelect.addEventListener('change', () => {
           state.holidayCountry = holidayCountrySelect.value || 'AT';
           autosave();
-        });
-      }
-      if (fetchHolidaysBtn) {
-        fetchHolidaysBtn.addEventListener('click', async () => {
-          if (!state.weekStartDate) {
-            alert('Bitte zuerst ein Wochen-Startdatum setzen.');
-            return;
-          }
-          const country = holidayCountrySelect?.value || state.holidayCountry || 'AT';
-          state.holidayCountry = country;
-          try {
-            fetchHolidaysBtn.disabled = true;
-            if (holidayFetchInfo) holidayFetchInfo.textContent = 'Feiertage werden geladen...';
-            const result = await loadPublicHolidaysForCurrentWeek(country);
-            autosave();
-            render();
-            if (holidayFetchInfo) holidayFetchInfo.textContent = `${result.added} Feiertag(e) hinzugefügt (${result.total} Treffer in dieser Woche).`;
-          } catch (err) {
-            if (holidayFetchInfo) holidayFetchInfo.textContent = 'Feiertage konnten nicht geladen werden.';
-            alert('Feiertage konnten nicht geladen werden. Bitte Internetverbindung prüfen.');
-          } finally {
-            fetchHolidaysBtn.disabled = false;
-          }
         });
       }
       if (holidayYearInput) {
@@ -5765,6 +6229,7 @@
             const action = btn.dataset.navAction;
             if (action === 'auto') document.getElementById('autoBtn')?.click();
             if (action === 'save') document.getElementById('saveBtn')?.click();
+            if (action === 'undo') document.getElementById('undoDeleteBtn')?.click();
             if (action === 'settings') document.getElementById('settingsBtn')?.click();
             state.headerBurgerOpen = false;
             applyHeaderBurgerMenuState();
@@ -5823,6 +6288,7 @@
       state.weekStartDate = getWeekDates(new Date())[0].toISOString().slice(0,10);
       state.schedule = makeEmptySchedule();
       state.holidayYearEntries = [];
+      loadDeleteUndoStack();
       SHIFTS = DEFAULT_SHIFTS.map(shift => ({ ...shift }));
 
       try {
@@ -5860,6 +6326,8 @@
         }
 
         const savedPlan = localStorage.getItem(STORAGE_KEY);
+        let didMigrateScheduleAssignments = false;
+        let didMigrateHistoryAssignments = false;
         if (savedPlan) {
           const parsed = JSON.parse(savedPlan);
           if (Array.isArray(parsed.shifts) && parsed.shifts.length) {
@@ -5867,7 +6335,9 @@
           }
           state.weekLabel = parsed.weekLabel || state.weekLabel;
           state.weekStartDate = parsed.weekStartDate || state.weekStartDate;
-          state.schedule = normalizeSchedule(parsed.schedule);
+          const migratedPlan = normalizeScheduleAssignmentsToStaff(parsed.schedule, state.staff);
+          state.schedule = migratedPlan.schedule;
+          didMigrateScheduleAssignments = migratedPlan.changed;
           state.holidayDates = Array.isArray(parsed.holidayDates) ? parsed.holidayDates : [];
           state.holidayCountByDate = parsed.holidayCountByDate && typeof parsed.holidayCountByDate === 'object' ? parsed.holidayCountByDate : {};
           state.holidayCountry = parsed.holidayCountry || 'AT';
@@ -5886,6 +6356,26 @@
         if (savedHistory) {
           const parsedHistory = JSON.parse(savedHistory);
           state.history = Array.isArray(parsedHistory) ? parsedHistory : [];
+          state.history = state.history.map(entry => {
+            const entryStaff = Array.isArray(entry.staff) ? entry.staff.map(normalizeMember) : [];
+            const migrated = normalizeScheduleAssignmentsToStaff(entry.schedule, entryStaff);
+            if (migrated.changed) didMigrateHistoryAssignments = true;
+            return {
+              ...entry,
+              schedule: migrated.schedule,
+              staff: entryStaff,
+            };
+          });
+        }
+        if (didMigrateScheduleAssignments && savedPlan) {
+          try {
+            const parsed = JSON.parse(savedPlan);
+            parsed.schedule = state.schedule;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+          } catch (_) {}
+        }
+        if (didMigrateHistoryAssignments) {
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history));
         }
         ensureScheduleMatchesShifts();
       } catch (e) {
