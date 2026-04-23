@@ -455,6 +455,10 @@
       gap: 10px;
       margin-top: 16px;
     }
+    .week-strip.week-strip-absence {
+      margin-top: 10px;
+      grid-template-columns: 1fr;
+    }
 
     .week-day {
       background: var(--cream);
@@ -501,6 +505,41 @@
     .week-day .day-duty-line {
       color: var(--text);
       opacity: 0.82;
+    }
+    .week-absence-summary {
+      background: linear-gradient(180deg, rgba(245, 252, 247, 0.96) 0%, rgba(234, 246, 238, 0.96) 100%);
+      border: 1px solid var(--accent-mid);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: grid;
+      gap: 12px;
+    }
+    .week-absence-section {
+      display: grid;
+      gap: 5px;
+    }
+    .week-absence-title {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.35px;
+      text-transform: uppercase;
+      color: var(--text);
+      opacity: 0.9;
+    }
+    .week-absence-entry {
+      font-size: 12.2px;
+      line-height: 1.3;
+      color: var(--text);
+      font-weight: 700;
+      opacity: 0.9;
+    }
+    .week-absence-empty {
+      font-size: 12.2px;
+      line-height: 1.3;
+      color: var(--text);
+      opacity: 0.62;
+      font-style: italic;
+      font-weight: 600;
     }
 
     /* Tabs */
@@ -1482,6 +1521,7 @@
       .stats-grid, .staff-grid, .status-grid { grid-template-columns: 1fr; }
       .staff-item-top { grid-template-columns: 1fr 1fr; }
       .week-strip { grid-template-columns: repeat(3, 1fr); }
+      .week-strip.week-strip-absence { grid-template-columns: 1fr; }
       .header-bar { grid-template-columns: auto 1fr; }
       .datetime-display { display: none; }
       .stats-week-breakdown { grid-template-columns: repeat(3, 1fr); }
@@ -1512,6 +1552,7 @@
       /* Wochenübersicht kompakter */
       .top-grid { grid-template-columns: 1fr; }
       .week-strip { grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 8px; }
+      .week-strip.week-strip-absence { grid-template-columns: 1fr; gap: 6px; }
       .week-day { padding: 7px 8px; border-radius: 8px; }
       .week-day .day-name { font-size: 13px; }
       .week-day .day-date { font-size: 15.6px; }
@@ -1878,6 +1919,7 @@
     /* ── SEHR KLEINES SMARTPHONE (≤380px) ── */
     @media (max-width: 380px) {
       .week-strip { grid-template-columns: repeat(2, 1fr); }
+      .week-strip.week-strip-absence { grid-template-columns: 1fr; }
       .staff-item-top { grid-template-columns: 1fr; }
       .header-title { font-size: 14px; }
       .mobile-days-grid { grid-template-columns: 1fr; }
@@ -1921,6 +1963,7 @@
         <div class="card-content">
           <div class="section-title" style="margin-bottom:0;">Wochenübersicht</div>
           <div id="weekStrip" class="week-strip"></div>
+          <div id="weekAbsenceStrip" class="week-strip week-strip-absence"></div>
         </div>
       </section>
 
@@ -4676,11 +4719,83 @@
       return `<span class="duty-prefix">Dienst:</span>${assignedNames.map(name => `<span class="duty-person">${escapeHtml(name)}</span>`).join('')}`;
     }
 
+    function formatDateRangeList(dateStrings) {
+      const uniqueSorted = [...new Set(dateStrings)].sort();
+      if (!uniqueSorted.length) return [];
+      const ranges = [];
+      let rangeStart = uniqueSorted[0];
+      let previous = uniqueSorted[0];
+      for (let i = 1; i < uniqueSorted.length; i++) {
+        const current = uniqueSorted[i];
+        const prevDate = new Date(`${previous}T12:00:00`);
+        const nextExpected = new Date(prevDate);
+        nextExpected.setDate(nextExpected.getDate() + 1);
+        const expectedStr = nextExpected.toISOString().slice(0, 10);
+        if (current === expectedStr) {
+          previous = current;
+          continue;
+        }
+        ranges.push({ start: rangeStart, end: previous });
+        rangeStart = current;
+        previous = current;
+      }
+      ranges.push({ start: rangeStart, end: previous });
+      return ranges.map(range => {
+        const startText = new Date(`${range.start}T12:00:00`).toLocaleDateString('de-DE');
+        const endText = new Date(`${range.end}T12:00:00`).toLocaleDateString('de-DE');
+        return startText === endText ? startText : `${startText} bis ${endText}`;
+      });
+    }
+
+    function collectWeekAbsenceSummary(weekDates) {
+      const weekDateStrings = weekDates.map(date => date.toISOString().slice(0, 10));
+      const vacationEntries = [];
+      const sickEntries = [];
+      state.staff.forEach(member => {
+        const vacationDates = weekDateStrings.filter(dateStr => getMemberDayAbsenceType(member, dateStr) === 'urlaub');
+        const sickDates = weekDateStrings.filter(dateStr => getMemberDayAbsenceType(member, dateStr) === 'krank');
+        if (vacationDates.length) {
+          vacationEntries.push({
+            name: member.name,
+            ranges: formatDateRangeList(vacationDates),
+          });
+        }
+        if (sickDates.length) {
+          sickEntries.push({
+            name: member.name,
+            ranges: formatDateRangeList(sickDates),
+          });
+        }
+      });
+      return { vacationEntries, sickEntries };
+    }
+
     function renderWeekStrip() {
       const weekDates = getWeekDates(new Date(`${state.weekStartDate}T12:00:00`));
       const holidaySet = getKnownHolidayDateSet();
       const strip = document.getElementById('weekStrip');
+      const absenceStrip = document.getElementById('weekAbsenceStrip');
       strip.innerHTML = '';
+      if (absenceStrip) {
+        const { vacationEntries, sickEntries } = collectWeekAbsenceSummary(weekDates);
+        const buildEntryHtml = (entry) => `${escapeHtml(entry.name)}: ${escapeHtml(entry.ranges.join(', '))}`;
+        absenceStrip.innerHTML = `
+          <div class="week-absence-summary">
+            <div class="week-absence-section">
+              <div class="week-absence-title">🌴 Wer befindet sich im Urlaub?</div>
+              ${vacationEntries.length
+                ? vacationEntries.map(entry => `<div class="week-absence-entry">${buildEntryHtml(entry)}</div>`).join('')
+                : '<div class="week-absence-empty">Niemand</div>'}
+            </div>
+            <div class="week-absence-section">
+              <div class="week-absence-title">🤒 Wer befindet sich im Krankenstand?</div>
+              ${sickEntries.length
+                ? sickEntries.map(entry => `<div class="week-absence-entry">${buildEntryHtml(entry)}</div>`).join('')
+                : '<div class="week-absence-empty">Niemand</div>'}
+            </div>
+          </div>
+        `;
+      }
       const memberLookup = buildMemberLookup(state.staff);
 
       weekDates.forEach((date, index) => {
