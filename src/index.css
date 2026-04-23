@@ -89,6 +89,16 @@ button {
   cursor: pointer;
 }
 
+.danger-button {
+  border-color: #ef4444;
+  color: #b91c1c;
+}
+
+.danger-button:disabled {
+  cursor: wait;
+  opacity: 0.8;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;

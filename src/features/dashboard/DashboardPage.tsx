@@ -31,9 +31,35 @@ type TabId = (typeof tabs)[number]['id']
 
 export const DashboardPage = ({ profile, onSignOut }: Props) => {
   const [activeTab, setActiveTab] = useState<TabId>('staff')
+  const [resettingClient, setResettingClient] = useState(false)
   const { weekStart, setWeekStart, data, loading, error, reload } = useDashboardData(
     profile.organization_id,
   )
+
+  const resetLocalClientData = async () => {
+    const confirmed = window.confirm(
+      'Lokale Browser-Daten werden geloescht und die Seite neu geladen. Fortfahren?',
+    )
+    if (!confirmed) return
+
+    setResettingClient(true)
+    try {
+      localStorage.clear()
+      sessionStorage.clear()
+
+      if ('caches' in window) {
+        const cacheNames = await caches.keys()
+        await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)))
+      }
+
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations()
+        await Promise.all(registrations.map((registration) => registration.unregister()))
+      }
+    } finally {
+      window.location.reload()
+    }
+  }
 
   return (
     <main className="dashboard">
@@ -52,6 +78,13 @@ export const DashboardPage = ({ profile, onSignOut }: Props) => {
             aria-label="Woche"
           />
           <button onClick={() => void reload()}>Neu laden</button>
+          <button
+            className="danger-button"
+            onClick={() => void resetLocalClientData()}
+            disabled={resettingClient}
+          >
+            {resettingClient ? 'Setzt zurueck...' : 'Lokale Daten zuruecksetzen'}
+          </button>
           <button onClick={() => void onSignOut()}>Logout</button>
         </div>
       </header>
