@@ -1,162 +1,130 @@
-# Bellinis Dienstplan PWA
+# Bellinis Next - Phase 1 Fundament
 
-Progressive Web App für die Schichtplanung im Bellinis Restaurant.
+Professionelle Neuentwicklung der Bellinis-Dienstplan-App mit React + TypeScript + Supabase.
 
-**Restaurant:** Sparkassenplatz 2, 6020 Innsbruck  
-**Telefon:** +43 699 12268051  
-**Email:** office@judys-bellinis.at
+## Zielbild
 
-## 🚀 Features
+- Multi-Device Datenhaltung mit zentraler PostgreSQL-Datenbank
+- Rollenbasiertes Login (`admin`, `manager`, `employee`)
+- Mandantenfaehige Architektur ueber `organization_id`
+- Produktionsnahes Frontend-Fundament fuer Phase 1
+- Vorbereitet fuer Phase 2/3 (mehr Automatisierung, mobile Erweiterung, erweiterte Reports)
 
-- ✅ **Offline-fähig** — funktioniert ohne Internet nach erstem Laden
-- ✅ **Mobile & Desktop** — responsive für alle Geräte
-- ✅ **3 Schichten pro Tag** — Früh 1, Früh 2, Spät
-- ✅ **Auto-Planer** — KI-gestützte Schichtplanung mit Fairness-Algorithmus
-- ✅ **Mitarbeiterverwaltung** — Sollstunden, Verfügbarkeit, Schichtsperren
-- ✅ **Archiv** — Wochenauswertungen mit PDF-Export
-- ✅ **PWA** — installierbar als App auf Handy und Desktop
+## Architektur
 
-## 📁 Dateistruktur
+- Frontend: Vite + React + TypeScript
+- Backend/API/Auth/DB: Supabase (PostgreSQL, Auth, RLS)
+- Deploy Frontend: Vercel oder Netlify
+- Optional: Supabase Edge Functions fuer Speziallogik
 
-```
-bellinis-deploy/
-├── index.html          # Haupt-App (3200+ Zeilen, komplette Logik)
-├── manifest.json       # PWA Manifest
-├── sw.js              # Service Worker (Offline-Cache)
-├── icon-192.png       # App-Icon 192x192
-├── icon-512.png       # App-Icon 512x512
-├── README.md          # Diese Datei
-└── .gitignore         # Git-Ausschlüsse
-```
+## Ordnerstruktur
 
-## 🌐 Deployment
-
-### GitHub Pages (kostenlos)
-
-1. **Repo erstellen:**
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git branch -M main
-   git remote add origin https://github.com/DEIN-USERNAME/bellinis.git
-   git push -u origin main
-   ```
-
-2. **GitHub Pages aktivieren:**
-   - Gehe zu: `Settings` → `Pages`
-   - Source: `Deploy from a branch`
-   - Branch: `main` / `root`
-   - Save
-
-3. **URL:**  
-   `https://DEIN-USERNAME.github.io/bellinis/`
-
-### Netlify (kostenlos)
-
-**Option A: Netlify Drop**
-1. Gehe zu https://app.netlify.com/drop
-2. Ziehe den `bellinis-deploy` Ordner ins Fenster
-3. Fertig! URL: `https://ZUFAELLIGER-NAME.netlify.app`
-
-**Option B: Netlify CLI**
-```bash
-npm install -g netlify-cli
-cd bellinis-deploy
-netlify deploy --prod
+```text
+src/
+  app/providers/            # Auth Provider + App Setup
+  features/                 # Fachmodule je Funktionsbereich
+    auth/
+    staff/
+    shifts/
+    plans/
+    absences/
+    reports/
+    archive/
+    transfer/
+  lib/
+    api/                    # Supabase Data Access Layer
+    planning/               # Auto-Plan Kernlogik
+    types.ts                # Domaintypen
+supabase/migrations/        # SQL Schema + RLS Policies
 ```
 
-### Vercel (kostenlos)
+## Implementierter Phase-1 Umfang
+
+- Mitarbeiterverwaltung
+- Schichtverwaltung
+- Wochenplan speichern/laden
+- Urlaub, Krankenstand und Feiertage
+- Auto-Plan nur fuer Kern-Team
+- Grundauswertung und PDF-Export
+- Archivierung von Wochenplaenen
+- JSON-Import/Export fuer Migration aus Altbestand
+
+## Setup
+
+1. Abhaengigkeiten installieren:
 
 ```bash
-npm install -g vercel
-cd bellinis-deploy
-vercel --prod
+npm install
 ```
 
-## 📱 Installation auf dem Handy
-
-### Android (Chrome)
-1. Öffne die gehostete URL in Chrome
-2. Tippe auf Menü (⋮) → **"Zum Startbildschirm hinzufügen"**
-3. ✅ App ist installiert!
-
-### iPhone (Safari)
-1. Öffne die gehostete URL in Safari
-2. Tippe auf Teilen-Icon (⬆️)
-3. Scrolle runter → **"Zum Home-Bildschirm"**
-4. ✅ App ist installiert!
-
-## 🔧 Lokale Entwicklung
+2. Umgebungsvariablen setzen:
 
 ```bash
-# Einfach einen lokalen Server starten
-npx serve .
-
-# Oder mit Python
-python3 -m http.server 8000
-
-# Oder mit Node.js
-npx http-server
+cp .env.example .env
 ```
 
-Dann öffne: http://localhost:8000
+Dann in `.env` Werte setzen:
 
-## 💾 Daten-Persistenz
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
 
-Alle Daten werden lokal im Browser gespeichert:
+3. Supabase Migration ausfuehren:
 
-- **localStorage** — aktuelle Woche, Mitarbeiter, Einstellungen
-- **Kein Backend** — 100% offline, keine Datenbank nötig
-- **Export** — PDF, CSV, JSON für Backups
+```bash
+supabase db push
+```
 
-## 📊 Funktionen im Detail
+4. Erst-Onboarding (Organisation + erster Admin):
 
-### Wochenplanung
-- Mo–Sa, 3 Schichten/Tag
-- Dynamische Slots (mehrere MA pro Schicht)
-- Doppelschicht-Warnung
-- Schichtsperren pro Mitarbeiter
+```bash
+npm run onboard:admin
+```
 
-### Auto-Planer
-- 600 Iterationen für optimale Planung
-- Fairness-Algorithmus (gerechte Spätdienst-Verteilung)
-- Berücksichtigt: Sollstunden, Max. Arbeitstage, Verfügbarkeit
-- Adaptive Toleranz bei Personalausfällen
+5. Dev-Server starten:
 
-### Mitarbeiterverwaltung
-- Name, Sollstunden, Max. Arbeitstage
-- Status: Verfügbar / Urlaub / Krankenstand
-- Schichtsperren: Früh 1, Früh 2, Spät (unabhängig)
-- Gesperrte Wochentage (Mo–Sa)
+```bash
+npm run dev
+```
 
-### Auswertung
-- Wochenübersicht mit Stunden pro MA
-- Zeitraum-Auswertung (mehrere Wochen)
-- PDF-Export mit Detailübersicht
-- Archiv (bis zu 104 Wochen)
+## Tests
 
-## 🎨 Design
+```bash
+npm run test
+```
 
-- **Farbschema:** Salbeigrün (#acc8b2), Orange (#c8450a), Dunkelbraun (#1a1208)
-- **Fonts:** Playfair Display (Headlines), DM Sans (Body)
-- **Mobile-First:** Responsive ab 380px
-- **Grain-Texture:** Subtile Hintergrund-Textur
+Enthaelt Basistests fuer kritische Kernlogik (`Auto-Plan`).
 
-## 🔐 Sicherheit
+## Deployment (Empfehlung)
 
-- Keine externen Abhängigkeiten (außer CDN-Fonts)
-- Keine Cookies, keine Tracking
-- Alle Daten bleiben lokal im Browser
-- HTTPS-only (über GitHub Pages / Netlify)
+1. Projekt bei Supabase anlegen, Auth + DB konfigurieren, Migration ausrollen.
+2. Frontend auf Netlify deployen (GitHub verbunden):
+   - `netlify.toml` ist bereits enthalten
+   - Build Command: `npm run build`
+   - Publish Directory: `dist`
+   - Env Vars aus `.env` im Projekt hinterlegen (`VITE_*`)
 
-## 📝 Lizenz
+3. Alternative: Frontend auf Vercel deployen:
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+   - Env Vars aus `.env` im Projekt hinterlegen.
+4. Domain + HTTPS aktivieren.
 
-Proprietäre Software für Bellinis Restaurant.  
-© 2026 Bellinis, Innsbruck
+## Rollen und Sicherheit
 
-## 🆘 Support
+Das Datenmodell verwendet RLS Policies. Jeder Nutzer sieht nur Daten seiner Organisation.
 
-Bei Fragen oder Problemen:
-- Email: office@judys-bellinis.at
-- Tel: +43 699 12268051
+- `employee`: nur Leserechte in eigener Organisation
+- `manager`: Lesen/Schreiben auf operative Planungsdaten
+- `admin`: Vollzugriff auf operative Planungsdaten und Auswertung
+
+## Migration Altdaten
+
+Der Import akzeptiert eine JSON-Datei mit den Bereichen:
+
+- `staff`
+- `shifts`
+- `vacation_blocks`
+- `sick_blocks`
+- `holidays`
+
+Empfehlung: zuerst Stammdaten (Mitarbeiter/Schichten), dann Abwesenheiten, danach Wochenplaene.

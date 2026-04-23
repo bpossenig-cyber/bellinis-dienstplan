@@ -1,0 +1,122 @@
+:root {
+  font-family: Inter, Segoe UI, Roboto, sans-serif;
+  color: #1a1f2e;
+  background: #f5f7fb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.auth-layout {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.dashboard {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #d9deea;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.stack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.inline-form,
+.inline-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.tab-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tab-bar button.active {
+  background: #1d4ed8;
+  color: #fff;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+  padding: 0.45rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+}
+
+button {
+  cursor: pointer;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  padding: 0.45rem;
+}
+
+.error {
+  color: #dc2626;
+}
+
+.warning {
+  color: #b45309;
+}
+
+.columns {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.file-label {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+}
