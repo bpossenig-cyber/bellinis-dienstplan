@@ -253,9 +253,51 @@
     /* Meta section */
     .meta-row {
       display: grid;
-      grid-template-columns: 2fr 1fr 1fr;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 16px;
       align-items: end;
+    }
+    .meta-coreteam-box {
+      min-height: 48px;
+      border: 1.5px solid var(--accent-mid);
+      border-radius: 12px;
+      background: var(--accent-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 10px;
+    }
+    .meta-coreteam-box #coreTeamAutoHint {
+      margin: 0;
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      color: var(--accent);
+      text-align: center;
+      line-height: 1.2;
+    }
+    .meta-reset-btn {
+      min-height: 48px;
+      padding: 10px 16px;
+      font-weight: 700;
+    }
+    .meta-export-desktop {
+      display: block;
+    }
+    .meta-export-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+    #metaExportFormat {
+      min-height: 48px;
+      padding: 8px 12px;
+      font-weight: 700;
+    }
+    #metaExportBtn {
+      min-height: 48px;
+      padding: 10px 14px;
+      font-weight: 700;
     }
 
     /* Toolbar */
@@ -344,6 +386,43 @@
       border-color: var(--accent);
       background: #fff;
       box-shadow: var(--focus-ring-shadow);
+    }
+
+    /* Wochenstart-Datum als vollflächiger Button */
+    #weekStartDate {
+      min-height: 48px;
+      padding: 10px 14px;
+      border-color: #16a34a;
+      background: #16a34a;
+      color: #ffffff;
+      font-weight: 700;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    #weekStartDate:hover {
+      background: #15803d;
+      border-color: #15803d;
+      transform: translateY(-1px);
+    }
+    #weekStartDate:focus {
+      background: #16a34a;
+      border-color: #15803d;
+      color: #ffffff;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.25);
+    }
+    #weekStartDate::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+      opacity: 0.95;
+      filter: brightness(0) invert(1);
+    }
+    #weekStartDate::-webkit-datetime-edit,
+    #weekStartDate::-webkit-datetime-edit-fields-wrapper,
+    #weekStartDate::-webkit-datetime-edit-text,
+    #weekStartDate::-webkit-datetime-edit-month-field,
+    #weekStartDate::-webkit-datetime-edit-day-field,
+    #weekStartDate::-webkit-datetime-edit-year-field {
+      color: #ffffff;
     }
 
     textarea { min-height: 80px; resize: vertical; }
@@ -784,6 +863,9 @@
       gap: 10px;
       align-items: end;
     }
+    .staff-item-top .staff-field-core {
+      grid-column: 1 / -1;
+    }
 
     .staff-item-rules {
       display: grid;
@@ -809,6 +891,14 @@
       gap: 10px;
       flex-wrap: wrap;
     }
+    .staff-vacation-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-self: stretch;
+      width: 100%;
+    }
+    .staff-vacation-actions .staff-delete-btn { margin-left: auto; }
 
     .staff-vacation-info {
       font-size: 12px;
@@ -1387,7 +1477,8 @@
     /* ── TABLET (≤1100px) ── */
     @media (max-width: 1100px) {
       .top-grid { grid-template-columns: 1fr; }
-      .meta-row { grid-template-columns: 1fr 1fr; }
+      .meta-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .meta-export-desktop { display: none; }
       .stats-grid, .staff-grid, .status-grid { grid-template-columns: 1fr; }
       .staff-item-top { grid-template-columns: 1fr 1fr; }
       .week-strip { grid-template-columns: repeat(3, 1fr); }
@@ -1431,7 +1522,14 @@
       .section-title { font-size: 19.5px; }
 
       /* Meta */
-      .meta-row { grid-template-columns: 1fr; gap: 8px; }
+      .meta-row {
+        grid-template-columns: repeat(4, minmax(170px, 1fr));
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+      .meta-row > div { min-width: 170px; }
+      .meta-export-desktop { display: none; }
 
       /* Main Tabs — 1 Spalte auf Mobile */
       .header-bar {
@@ -1812,6 +1910,9 @@
       <button type="button" class="menu-action-btn" data-nav-action="save">💾 Speichern</button>
       <button type="button" class="menu-action-btn" data-nav-action="undo">↶ Löschung rückgängig</button>
       <button type="button" class="menu-action-btn" data-nav-action="settings">⚙️ Einstellungen</button>
+      <div class="menu-action-btn" style="font-weight:800; opacity:0.8;">📦 Export</div>
+      <button type="button" class="menu-action-btn" data-nav-action="csv">CSV exportieren</button>
+      <button type="button" class="menu-action-btn" data-nav-action="json">JSON exportieren</button>
     </div>
 
     <!-- Top: Week strip + Actions -->
@@ -1843,20 +1944,32 @@
       <div class="card-content">
         <div class="meta-row">
           <div>
+            <label for="weekStartDate">Wochenplan erstellen</label>
+            <input id="weekStartDate" type="date" />
+          </div>
+          <div>
             <label for="weekLabel">Planname / Woche</label>
             <input id="weekLabel" type="text" placeholder="z. B. KW 18 · April 2025" />
           </div>
           <div>
-            <label for="weekStartDate">Woche ab</label>
-            <input id="weekStartDate" type="date" />
+            <label>Kern-Team aktiv</label>
+            <div class="meta-coreteam-box">
+              <div id="coreTeamAutoHint" class="small muted">Kern-Team aktiv: 0/0</div>
+            </div>
           </div>
           <div>
-            <label>Export</label>
-            <div class="btn-row">
-              <button id="csvBtn">CSV</button>
-              <button id="jsonBtn">JSON</button>
-              <button id="resetBtn">↺ Reset</button>
-              <button id="installBtn" style="display:none;" class="gold">App installieren</button>
+            <label>Reset</label>
+            <button id="resetBtn" class="meta-reset-btn">↺ Reset</button>
+            <button id="installBtn" style="display:none;" class="gold">App installieren</button>
+          </div>
+          <div class="meta-export-desktop">
+            <label for="metaExportFormat">Export</label>
+            <div class="meta-export-row">
+              <select id="metaExportFormat">
+                <option value="csv">CSV</option>
+                <option value="json">JSON</option>
+              </select>
+              <button id="metaExportBtn">Export</button>
             </div>
           </div>
         </div>
@@ -3214,6 +3327,7 @@
         status: 'verfuegbar',
         weeklyHours,
         targetHours: weeklyHours,
+        coreTeam: false,
         shiftRestrictions: {},
         blockedDays: [],
         maxVacationDays: 30,
@@ -3339,8 +3453,16 @@
         }
       } catch(e) {}
 
-      const totalStaff = state.staff.length;
-      const absentStaff = state.staff.filter(isUnavailable).length;
+      const coreTeamStaff = state.staff.filter(member => !!member.coreTeam);
+      if (!coreTeamStaff.length) {
+        state.autoInfo = '⚠️ Auto-Plan abgebrochen: Kein Kern-Team markiert. Bitte im Mitarbeiterbereich mindestens eine Person als „Kern-Team“ aktivieren.';
+        render();
+        alert('Kein Kern-Team markiert. Bitte im Mitarbeiterbereich mindestens eine Person als „Kern-Team“ aktivieren.');
+        return;
+      }
+
+      const totalStaff = coreTeamStaff.length;
+      const absentStaff = coreTeamStaff.filter(isUnavailable).length;
       const weekDates = getWeekDates(new Date(`${state.weekStartDate}T12:00:00`));
       const holidaySet = getKnownHolidayDateSet();
       const holidaySkipDays = new Set(
@@ -3354,7 +3476,13 @@
       const absenceRatio = totalStaff > 0 ? absentStaff / totalStaff : 0;
       const dynamicTolerancePct = Math.min(0.5, 0.10 + absenceRatio * 0.5);
 
-      const staff = availableStaff();
+      const staff = coreTeamStaff.filter(member => !isUnavailable(member));
+      if (!staff.length) {
+        state.autoInfo = '⚠️ Auto-Plan abgebrochen: Alle Kern-Team-Mitglieder sind aktuell in Urlaub oder Krankenstand.';
+        render();
+        alert('Alle Kern-Team-Mitglieder sind aktuell in Urlaub oder Krankenstand.');
+        return;
+      }
       const shiftHours = Object.fromEntries(SHIFTS.map(shift => [shift.key, shift.hours]));
       const shiftBandByKey = Object.fromEntries(SHIFTS.map(shift => [shift.key, getShiftVisualBand(shift)]));
       const effectiveTargetByName = Object.fromEntries(staff.map(member => [member.name, getMemberEffectiveTargetHours(member)]));
@@ -3613,7 +3741,7 @@
       const hardRuleInfo = hasHardRuleWarnings
         ? ` ⚠️ Notfall-Regelbrüche: Nachtfolge=${finalValidation.summary.consecutiveNightViolations}, Früh-nach-Nacht=${finalValidation.summary.earlyAfterNightViolations}.`
         : ' ✅ Harte Nachtregeln eingehalten.';
-      state.autoInfo = '⚡ Automatisch erzeugt am ' + new Date().toLocaleString('de-DE') + '. Faire Verteilung, Schichtrotation für Spät/Nacht aktiv, Soll-Stunden gewichtet optimiert.' + holidayInfo + hardRuleInfo;
+      state.autoInfo = '⚡ Automatisch erzeugt am ' + new Date().toLocaleString('de-DE') + ' (nur Kern-Team). Faire Verteilung, Schichtrotation für Spät/Nacht aktiv, Soll-Stunden gewichtet optimiert.' + holidayInfo + hardRuleInfo;
       autosave();
       render();
     }
@@ -3841,6 +3969,47 @@
       return Boolean(start && end && dateStr >= start && dateStr <= end);
     }
 
+    function getMemberAdjustmentKey(member) {
+      const id = String(member?.id ?? '').trim();
+      if (id) return id;
+      return `name:${normalizePersonToken(member?.name)}`;
+    }
+
+    function getManualHourAdjustment(entry, member) {
+      const map = entry?.manualHourAdjustments;
+      if (!map || typeof map !== 'object') return 0;
+      const byId = String(member?.id ?? '').trim();
+      const byName = normalizePersonToken(member?.name);
+      const keyedName = `name:${byName}`;
+      const raw = map[getMemberAdjustmentKey(member)] ?? map[byId] ?? map[keyedName] ?? map[byName] ?? 0;
+      const value = Number(raw);
+      return Number.isFinite(value) ? Math.round(value * 10) / 10 : 0;
+    }
+
+    function applyManualHourAdjustment(entryId, member, nextHours) {
+      const index = state.history.findIndex(entry => entry.id === entryId);
+      if (index < 0) return;
+      const entry = state.history[index];
+      if (!entry.manualHourAdjustments || typeof entry.manualHourAdjustments !== 'object') entry.manualHourAdjustments = {};
+      const key = getMemberAdjustmentKey(member);
+      const rounded = Math.round((Number(nextHours) || 0) * 10) / 10;
+      if (Math.abs(rounded) < 0.05) {
+        delete entry.manualHourAdjustments[key];
+      } else {
+        entry.manualHourAdjustments[key] = rounded;
+      }
+      if (!Object.keys(entry.manualHourAdjustments).length) delete entry.manualHourAdjustments;
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history));
+      renderStatsWeekList();
+      if (state.selectedStatsWeekId === entryId) {
+        const content = document.getElementById('statsWeekContent');
+        if (content) {
+          content.innerHTML = '';
+          renderWeekStats(entry, content);
+        }
+      }
+    }
+
     function buildCalendarEventsForMember(member, schedule, weekStartDate, holidayDates, holidayCountByDate = {}) {
       const holidays = new Set(Array.isArray(holidayDates) ? holidayDates : []);
       return DAYS.map(day => {
@@ -3889,6 +4058,7 @@
         warnings: [],
         dayDetail: {},   // day -> [shiftLabels]
         calendarEvents: [],
+        manualAdjustment: 0,
       }));
       const byName = Object.fromEntries(result.map(r => [r.name, r]));
 
@@ -3941,7 +4111,9 @@
         person.urlaubDays = events.filter(evt => evt.type === CALENDAR_EVENT_TYPES.VACATION && evt.hours > 0).length;
         person.krankDays = events.filter(evt => evt.type === CALENDAR_EVENT_TYPES.SICK && evt.hours > 0).length;
         person.holidayDays = events.filter(evt => evt.type === CALENDAR_EVENT_TYPES.HOLIDAY && evt.hours > 0).length;
-        person.plannedHours = Math.round((person.workHours + person.vacationHours + person.sickHours + person.holidayHours) * 10) / 10;
+        const basePlanned = Math.round((person.workHours + person.vacationHours + person.sickHours + person.holidayHours) * 10) / 10;
+        person.manualAdjustment = getManualHourAdjustment(entry, person);
+        person.plannedHours = Math.round((basePlanned + person.manualAdjustment) * 10) / 10;
 
         events.forEach(evt => {
           if (!person.dayDetail[evt.day]) person.dayDetail[evt.day] = [];
@@ -4049,10 +4221,18 @@
               ${person.vacationHours ? `<span class="capsule" style="background:#fdf4ec;border-color:#fdba74;">🌴 Urlaub ${person.vacationHours}h</span>` : ''}
               ${person.sickHours ? `<span class="capsule" style="background:#fef2f2;border-color:#fca5a5;">🤒 Krank ${person.sickHours}h</span>` : ''}
               ${person.holidayHours ? `<span class="capsule" style="background:#eef2ff;border-color:#c7d2fe;">🎉 Feiertag ${person.holidayHours}h</span>` : ''}
+              ${person.manualAdjustment ? `<span class="capsule" style="background:#ecfeff;border-color:#67e8f9;">✍️ Manuell ${person.manualAdjustment > 0 ? '+' : ''}${person.manualAdjustment}h</span>` : ''}
               ${person.urlaubDays ? `<span class="capsule" style="background:#fdf4ec;border-color:#fdba74;">🌴 Urlaub</span>` : ''}
               ${person.krankDays ? `<span class="capsule" style="background:#fef2f2;border-color:#fca5a5;">🤒 Krankenstand</span>` : ''}
               ${rules.join('')}
             </div>
+          </div>
+          <div style="margin:8px 0 10px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span class="small muted" style="font-size:12px; font-weight:700;">Stundenkorrektur:</span>
+            <button type="button" data-adjust-action="dec" style="padding:4px 8px; font-size:12px; min-height:30px;">-1h</button>
+            <input type="number" step="0.5" data-adjust-input value="${person.manualAdjustment}" style="width:86px; min-height:30px; padding:4px 8px; font-size:13px; border:1.5px solid var(--border); border-radius:8px;">
+            <button type="button" data-adjust-action="inc" style="padding:4px 8px; font-size:12px; min-height:30px;">+1h</button>
+            <button type="button" data-adjust-action="reset" style="padding:4px 8px; font-size:12px; min-height:30px;">Reset</button>
           </div>
           <div class="stats-bar-wrap">
             <div class="stats-bar-fill" style="width:${pct}%; background:${barColor};"></div>
@@ -4061,6 +4241,24 @@
           <div class="stats-week-breakdown">${dayBreakdown}</div>
           ${person.warnings.length ? `<div style="margin-top:10px; display:grid; gap:4px;">${person.warnings.map(w=>`<div class="notice warning" style="padding:8px 12px; font-size:12px;">⚠️ ${w}</div>`).join('')}</div>` : ''}
         `;
+        const adjustInput = card.querySelector('[data-adjust-input]');
+        const updateAdjustment = (nextValue) => {
+          applyManualHourAdjustment(entry.id, person, nextValue);
+        };
+        card.querySelector('[data-adjust-action="dec"]')?.addEventListener('click', () => {
+          const current = Number(adjustInput?.value) || 0;
+          updateAdjustment(current - 1);
+        });
+        card.querySelector('[data-adjust-action="inc"]')?.addEventListener('click', () => {
+          const current = Number(adjustInput?.value) || 0;
+          updateAdjustment(current + 1);
+        });
+        card.querySelector('[data-adjust-action="reset"]')?.addEventListener('click', () => {
+          updateAdjustment(0);
+        });
+        adjustInput?.addEventListener('change', () => {
+          updateAdjustment(Number(adjustInput.value) || 0);
+        });
         container.appendChild(card);
       });
     }
@@ -4441,6 +4639,15 @@
       } else {
         autoInfo.style.display = 'none';
       }
+    }
+
+    function updateCoreTeamAutoHint() {
+      const hint = document.getElementById('coreTeamAutoHint');
+      if (!hint) return;
+      const coreTeamTotal = state.staff.filter(member => !!member.coreTeam).length;
+      const coreTeamAvailable = state.staff.filter(member => !!member.coreTeam && !isUnavailable(member)).length;
+      hint.textContent = `Kern-Team aktiv: ${coreTeamAvailable}/${coreTeamTotal}`;
+      hint.title = `${coreTeamAvailable} verfügbare von ${coreTeamTotal} Kern-Team-Mitgliedern`;
     }
 
     function getAssignedNamesByDay(dayName, lookup = buildMemberLookup(state.staff)) {
@@ -5477,6 +5684,7 @@
       state.staff.forEach(member => {
         if (!member.blockedDays) member.blockedDays = [];
         syncMemberShiftRestrictions(member);
+        if (member.coreTeam === undefined) member.coreTeam = false;
         if (member.maxVacationDays === undefined) member.maxVacationDays = 30;
         if (!Array.isArray(member.vacationBlocks)) member.vacationBlocks = [];
         if (!Array.isArray(member.sickBlocks)) member.sickBlocks = [];
@@ -5484,7 +5692,7 @@
         const row = document.createElement('div');
         row.className = 'staff-item';
 
-        // Top row: name, hours, days, notes, delete
+        // Top row: name, hours, days, notes
         const top = document.createElement('div');
         top.className = 'staff-item-top';
         top.innerHTML = `
@@ -5493,26 +5701,21 @@
           <div><label>Max.T.</label><input type="number" value="${member.maxDays}" data-field="maxDays" /></div>
           <div><label>Max.Urlaub</label><input type="number" value="${member.maxVacationDays}" data-field="maxVacationDays" /></div>
           <div><label>Notizen</label><input type="text" value="${member.notes || ''}" data-field="notes" placeholder="Freitext" /></div>
-          <div><button data-remove="${member.id}" style="color:#dc2626; border-color:#fca5a5; background:#fff5f5; margin-top:20px;">✕</button></div>
+          <div class="staff-field-core"><label>Kern-Team</label><input type="checkbox" ${member.coreTeam ? 'checked' : ''} data-field="coreTeam" /></div>
         `;
         top.querySelectorAll('input[data-field]').forEach(el => {
           // 'input' fires on every keystroke → instant autosave without losing focus
           el.addEventListener('input', (e) => {
             const field = e.target.dataset.field;
-            member[field] = field === 'targetHours' || field === 'maxDays' || field === 'maxVacationDays' ? Number(e.target.value) || 0 : e.target.value;
+            if (field === 'coreTeam') {
+              member[field] = !!e.target.checked;
+              updateCoreTeamAutoHint();
+            } else {
+              member[field] = field === 'targetHours' || field === 'maxDays' || field === 'maxVacationDays' ? Number(e.target.value) || 0 : e.target.value;
+            }
             if (field === 'targetHours') member.weeklyHours = member.targetHours;
             autosave();
           });
-        });
-        top.querySelector('[data-remove]').addEventListener('click', () => {
-          if (!confirmDeleteAction(`Mitarbeiter „${member.name}“ wirklich löschen?`)) return;
-          pushDeleteUndoSnapshot(`Mitarbeiter gelöscht (${member.name})`, {
-            staff: state.staff,
-            schedule: state.schedule,
-          });
-          state.staff = state.staff.filter(entry => entry.id !== member.id);
-          removeNameFromSchedule(member.name);
-          autosave(); render();
         });
         row.appendChild(top);
 
@@ -5599,9 +5802,14 @@
         vacationPanel.innerHTML = `
           <div class="staff-vacation-head">
             <label style="margin:0;">🌴 Urlaubskalender</label>
-            <button type="button" class="staff-vacation-btn" style="padding:6px 12px; font-size:13px; background:var(--accent-soft); color:var(--accent); border:1.5px solid var(--accent-mid);">
-              📅 Verwalten
-            </button>
+            <div class="staff-vacation-actions">
+              <button type="button" class="staff-vacation-btn" style="padding:6px 12px; font-size:13px; background:var(--accent-soft); color:var(--accent); border:1.5px solid var(--accent-mid);">
+                📅 Verwalten
+              </button>
+              <button type="button" class="staff-delete-btn" data-remove="${member.id}" style="padding:6px 12px; font-size:13px; color:#dc2626; border-color:#fca5a5; background:#fff5f5; font-weight:700;">
+                Mitarbeiter löschen ✕
+              </button>
+            </div>
           </div>
           <div class="staff-vacation-info">${member.vacationBlocks.length} Block${member.vacationBlocks.length === 1 ? '' : 'e'} · ${totalVacationDays} Tage gesamt</div>
           <div class="staff-vacation-badges">
@@ -5612,6 +5820,16 @@
         `;
         vacationPanel.querySelector('.staff-vacation-btn').addEventListener('click', () => {
           openVacationBlockModal(member, 'urlaub');
+        });
+        vacationPanel.querySelector('.staff-delete-btn').addEventListener('click', () => {
+          if (!confirmDeleteAction(`Mitarbeiter „${member.name}“ wirklich löschen?`)) return;
+          pushDeleteUndoSnapshot(`Mitarbeiter gelöscht (${member.name})`, {
+            staff: state.staff,
+            schedule: state.schedule,
+          });
+          state.staff = state.staff.filter(entry => entry.id !== member.id);
+          removeNameFromSchedule(member.name);
+          autosave(); render();
         });
         row.appendChild(vacationPanel);
 
@@ -5994,6 +6212,7 @@
     function render() {
       renderNewStaffShiftRestrictions();
       renderMeta();
+      updateCoreTeamAutoHint();
       renderWeekStrip();
       renderStatusLists();
       renderShiftConfig();
@@ -6012,7 +6231,20 @@
 
     function wireEvents() {
       document.getElementById('weekLabel').addEventListener('input', (e) => { state.weekLabel = e.target.value; autosave(); });
-      document.getElementById('weekStartDate').addEventListener('change', (e) => {
+      const weekStartDateInput = document.getElementById('weekStartDate');
+      weekStartDateInput.addEventListener('pointerdown', () => {
+        if (typeof weekStartDateInput.showPicker === 'function') {
+          try { weekStartDateInput.showPicker(); } catch(_) {}
+        }
+      });
+      weekStartDateInput.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        if (typeof weekStartDateInput.showPicker === 'function') {
+          try { weekStartDateInput.showPicker(); } catch(_) {}
+        }
+      });
+      weekStartDateInput.addEventListener('change', (e) => {
         const oldDate = state.weekStartDate;
         const newDate = e.target.value;
 
@@ -6065,8 +6297,16 @@
       document.getElementById('pdfBtn').addEventListener('click', createPdf);
       document.getElementById('shareBtn').addEventListener('click', sharePdf);
       document.getElementById('installBtn').addEventListener('click', installApp);
-      document.getElementById('csvBtn').addEventListener('click', exportCsv);
-      document.getElementById('jsonBtn').addEventListener('click', exportJson);
+      document.getElementById('csvBtn')?.addEventListener('click', exportCsv);
+      document.getElementById('jsonBtn')?.addEventListener('click', exportJson);
+      document.getElementById('metaExportBtn')?.addEventListener('click', () => {
+        const format = document.getElementById('metaExportFormat')?.value || 'csv';
+        if (format === 'json') {
+          exportJson();
+          return;
+        }
+        exportCsv();
+      });
       document.getElementById('resetBtn').addEventListener('click', resetPlan);
       document.getElementById('settingsBtn')?.addEventListener('click', openSettingsModal);
       document.getElementById('undoDeleteBtn').addEventListener('click', undoLastDeleteAction);
@@ -6270,6 +6510,8 @@
             if (action === 'save') document.getElementById('saveBtn')?.click();
             if (action === 'undo') document.getElementById('undoDeleteBtn')?.click();
             if (action === 'settings') openSettingsModal();
+            if (action === 'csv') exportCsv();
+            if (action === 'json') exportJson();
             state.headerBurgerOpen = false;
             applyHeaderBurgerMenuState();
           });
