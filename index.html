@@ -2567,6 +2567,15 @@
       </section>
     </div>
 
+    <!-- Auto schedule info -->
+    <section class="card">
+      <div class="card-content">
+        <div style="font-weight:700; color:var(--text);">Automatische Planung</div>
+        <div class="small muted" style="margin-top:6px;">Der Generator plant fair, verteilt Stunden gleichmäßig, rotiert freie Tage und berücksichtigt ausschließlich die expliziten Regeln aus Schicht-Sperren, gesperrten Wochentagen, Urlaub und Krankenstand. Die Besetzung je Schicht wird dynamisch anhand von Mitarbeiterverfügbarkeit, Sollstunden, Schichtzeiten und Regelgewichtung berechnet.</div>
+        <div id="autoInfo" style="display:none;"></div>
+      </div>
+    </section>
+
     <!-- Meta row -->
     <section class="card">
       <div class="card-content">
@@ -2601,15 +2610,6 @@
             </div>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- Auto schedule info -->
-    <section class="card">
-      <div class="card-content">
-        <div style="font-weight:700; color:var(--text);">Automatische Planung</div>
-        <div class="small muted" style="margin-top:6px;">Der Generator plant fair, verteilt Stunden gleichmäßig, rotiert freie Tage und berücksichtigt ausschließlich die expliziten Regeln aus Schicht-Sperren, gesperrten Wochentagen, Urlaub und Krankenstand. Die Besetzung je Schicht wird dynamisch anhand von Mitarbeiterverfügbarkeit, Sollstunden, Schichtzeiten und Regelgewichtung berechnet.</div>
-        <div id="autoInfo" style="display:none;"></div>
       </div>
     </section>
 
@@ -4667,6 +4667,9 @@
     function buildAutoPlanDistributionLines(staff, schedule, effectiveTargetByName, weekDateStrings = []) {
       return staff.map(member => {
         const plannedHours = DAYS.reduce((sum, day) => sum + getAssignedHoursForDay(schedule, day, member), 0);
+        const workedDays = DAYS.filter(day =>
+          SHIFTS.some(shift => (schedule?.[day]?.[shift.key] || []).some(token => isSameMemberToken(member, token)))
+        );
         const hasSickWeek = weekDateStrings.some(dateStr => getMemberDayAbsenceType(member, dateStr) === 'krank');
         const hasVacationWeek = weekDateStrings.some(dateStr => getMemberDayAbsenceType(member, dateStr) === 'urlaub');
         const unavailableReason = member.status === 'krankenstand' || hasSickWeek
@@ -4685,6 +4688,7 @@
           hasLateWarning: shiftDistributionData.hasLateWarning,
           shiftParts: shiftDistributionData.shiftParts,
           unavailableReason,
+          workedDaysText: workedDays.length ? workedDays.join(', ') : 'Keine Arbeitstage',
         };
       }).sort((a, b) => a.name.localeCompare(b.name, 'de-DE'));
     }
@@ -4761,6 +4765,7 @@
               <div class="autoplan-distribution-item">
                 <span><strong>${escapeHtml(row.name)}</strong> ${row.unavailableReason ? '' : `${row.plannedHours}h / Soll ${row.targetHours}h`}
                   ${absenceHint}
+                  <div class="small muted" style="margin-top:4px;">${escapeHtml(row.name)}: ${escapeHtml(row.workedDaysText || 'Keine Arbeitstage')}</div>
                   <span class="autoplan-shift-badges">
                     ${shiftBadges || '<span class="autoplan-shift-badge">Keine Schichtzuordnung</span>'}
                     ${row.hasLateWarning ? `<span class="autoplan-shift-badge warn">⚠️ ${row.lateCount}x Spät</span>` : ''}
@@ -6361,7 +6366,16 @@
     function buildWeekShiftDistributionRows(schedule = state.schedule) {
       const rows = state.staff
         .filter(member => !isUnavailable(member))
-        .map(member => ({ name: member.name, ...getShiftDistributionForMember(member, schedule) }))
+        .map(member => {
+          const workedDays = DAYS.filter(day =>
+            SHIFTS.some(shift => (schedule?.[day]?.[shift.key] || []).some(token => isSameMemberToken(member, token)))
+          );
+          return {
+            name: member.name,
+            workedDaysText: workedDays.length ? workedDays.join(', ') : 'Keine Arbeitstage',
+            ...getShiftDistributionForMember(member, schedule),
+          };
+        })
         .filter(row => row.text !== 'Keine Schichtzuordnung')
         .sort((a, b) => a.name.localeCompare(b.name, 'de-DE'));
       return rows;
@@ -6472,6 +6486,7 @@
                             <div class="week-shift-distribution-badges">
                               ${shiftBadges || '<span class="week-shift-badge">Keine Schichtzuordnung</span>'}
                             </div>
+                            <div class="small muted">${escapeHtml(row.name)}: ${escapeHtml(row.workedDaysText || 'Keine Arbeitstage')}</div>
                           </div>
                         `;
                       }).join('')
