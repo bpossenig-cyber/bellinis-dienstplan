@@ -628,6 +628,20 @@
       box-shadow: var(--tab-active-shadow);
     }
 
+    /* Wochenplan dauerhaft hervorheben */
+    .tab-btn[data-tab="plan"] {
+      background: linear-gradient(135deg, #ff8a1f 0%, #f97316 55%, #ea580c 100%);
+      border-color: #ea580c;
+      color: #fff;
+      box-shadow: 0 10px 20px rgba(234, 88, 12, 0.35);
+    }
+
+    .tab-btn[data-tab="plan"]:hover {
+      color: #fff;
+      background: linear-gradient(135deg, #ff9a3c 0%, #fb7a21 55%, #f06413 100%);
+      border-color: #ea580c;
+    }
+
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
@@ -792,24 +806,82 @@
       background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(237,246,241,0.95) 100%);
     }
 
-    .shift-exception-grid {
-      display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      gap: 6px;
+    .shift-exception-box {
       margin-top: 6px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      border: 1.5px solid #cfd5d2;
+      background: #edf0ee;
+      border-radius: 10px;
+      padding: 8px;
+      display: grid;
+      gap: 8px;
     }
 
-    .shift-exception-grid label {
+    .shift-exception-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .shift-exception-title {
+      font-size: 11px;
+      color: #5e6763;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+    }
+
+    .shift-exception-add {
+      min-height: 28px;
+      padding: 4px 10px;
+      font-size: 12px;
+      border-radius: 999px;
+      background: #dfe4e2;
+      border: 1.5px solid #b8c0bc;
+      color: #2e3a34;
+      font-weight: 800;
+    }
+
+    .shift-exception-list {
+      display: grid;
+      gap: 6px;
+    }
+
+    .shift-exception-item {
+      display: grid;
+      grid-template-columns: 120px 1fr auto;
+      gap: 6px;
+      align-items: end;
+      background: #f3f5f4;
+      border: 1px solid #d3d8d5;
+      border-radius: 8px;
+      padding: 6px;
+    }
+
+    .shift-exception-item label {
       margin: 0;
       font-size: 11px;
-      color: var(--muted);
+      color: #5d6763;
+      font-weight: 700;
     }
 
-    .shift-exception-grid input {
-      font-size: 12px;
+    .shift-exception-item select,
+    .shift-exception-item input {
+      min-height: 32px;
+      font-size: 12.5px;
       padding: 6px 8px;
-      min-height: 34px;
+    }
+
+    .shift-exception-remove {
+      min-height: 32px;
+      min-width: 32px;
+      padding: 0 8px;
+      border-radius: 8px;
+      border: 1.5px solid #f2b8b8;
+      background: #fff2f2;
+      color: #b42318;
+      font-weight: 900;
     }
 
     .shift-calc-hint {
@@ -1944,7 +2016,7 @@
       }
       .mobile-shift-tab.active.frueh1 { background: #166534; border-color: #166534; color: #fff; }
       .mobile-shift-tab.active.frueh2 { background: #1a5c35; border-color: #1a5c35; color: #fff; }
-      .mobile-shift-tab.active.spaet  { background: #92400e; border-color: #92400e; color: #fff; }
+      .mobile-shift-tab.active.spaet  { background: #f97316; border-color: #f97316; color: #fff; }
       .mobile-shift-tab.active {
         background: #16a34a;
         border-color: #16a34a;
@@ -2293,7 +2365,7 @@
     <section class="card">
       <div class="card-content">
         <div style="font-weight:700; color:var(--text);">Automatische Planung</div>
-        <div class="small muted" style="margin-top:6px;">Der Generator plant fair, verteilt Stunden gleichmäßig, rotiert freie Tage und berücksichtigt ausschließlich die expliziten Regeln aus Schicht-Sperren, gesperrten Wochentagen, Urlaub und Krankenstand. Pro Schicht können bis zu 2 Mitarbeitende eingeplant werden.</div>
+        <div class="small muted" style="margin-top:6px;">Der Generator plant fair, verteilt Stunden gleichmäßig, rotiert freie Tage und berücksichtigt ausschließlich die expliziten Regeln aus Schicht-Sperren, gesperrten Wochentagen, Urlaub und Krankenstand. Die Besetzung je Schicht wird dynamisch anhand von Mitarbeiterverfügbarkeit, Sollstunden, Schichtzeiten und Regelgewichtung berechnet.</div>
         <div id="autoInfo" style="display:none;"></div>
       </div>
     </section>
@@ -2448,6 +2520,7 @@
                     <label class="day-block-btn"><input type="checkbox" value="Donnerstag"> Do</label>
                     <label class="day-block-btn"><input type="checkbox" value="Freitag"> Fr</label>
                     <label class="day-block-btn"><input type="checkbox" value="Samstag"> Sa</label>
+                    <label class="day-block-btn"><input type="checkbox" value="Sonntag"> So</label>
                   </div>
                 </div>
                 <div style="margin-top:12px;">
@@ -2580,6 +2653,7 @@
 
   <script>
     const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+    const WEEKDAY_OPTIONS = [...DAYS, 'Sonntag'];
     const DEFAULT_SHIFTS = [
       { key: 'frueh1', label: 'Früh 1', time: '06:30–15:00', hours: 8.5 },
       { key: 'frueh2', label: 'Früh 2', time: '09:00–15:00', hours: 6 },
@@ -2866,7 +2940,7 @@
             label: String(shift?.label || `Schicht ${index + 1}`).trim(),
             time: String(shift?.time || '08:00–16:00').trim(),
             hours: Math.max(0, Number(shift?.hours) || 0),
-            dayOverrides: DAYS.reduce((acc, day) => {
+            dayOverrides: WEEKDAY_OPTIONS.reduce((acc, day) => {
               const raw = shift?.dayOverrides?.[day];
               if (!raw || typeof raw !== 'object') return acc;
               const time = String(raw.time || '').trim();
@@ -4478,7 +4552,7 @@
                 const maxDaysOverflow = Math.max(0, (tracker.workedDays.has(day) ? tracker.workedDays.size : tracker.workedDays.size + 1) - member.maxDays);
                 const maxDaysPenalty = maxDaysOverflow * 28;
                 const lateOverflow = shiftBand === 'spaet' ? Math.max(0, (tracker.lateCount + 1) - 3) : 0;
-                const lateOverflowPenalty = lateOverflow * 38;
+                const lateOverflowPenalty = lateOverflow * 180;
                 const historyDelta = historicalDeltaByNameKey[normalizePersonToken(member.name)] || 0;
                 // Negative historyDelta => Unterstunden => bevorzugen.
                 const fairnessBias = historyDelta < 0
@@ -4542,7 +4616,7 @@
           penalty += Math.abs(tracker.lateCount - avgLate) * 3.5;
           penalty += Math.abs(tracker.nightCount - avgNight) * 6.0;
           penalty += tracker.ruleBreaks * 110;
-          if (tracker.lateCount > 3) penalty += (tracker.lateCount - 3) * 55;
+          if (tracker.lateCount > 3) penalty += (tracker.lateCount - 3) * 260;
           const historyDelta = historicalDeltaByNameKey[normalizePersonToken(member.name)] || 0;
           const projectedTotalDelta = historyDelta + delta;
           penalty += Math.abs(projectedTotalDelta) * 1.8;
@@ -5982,8 +6056,15 @@
       SHIFTS.forEach(shift => {
         const tr = document.createElement('tr');
         const firstCell = document.createElement('td');
-        const hasExceptions = Object.keys(shift.dayOverrides || {}).length > 0;
-        firstCell.innerHTML = `<div class="shift-label">${shift.label}</div><div class="shift-sub">${shift.time} · ${shift.hours}h${hasExceptions ? ' · mit Ausnahmen' : ''}</div>`;
+        const exceptionLines = WEEKDAY_OPTIONS
+          .filter(day => shift?.dayOverrides?.[day]?.time)
+          .map(day => {
+            const ex = shift.dayOverrides[day];
+            const hours = Number.isFinite(Number(ex?.hours)) ? Number(ex.hours) : shift.hours;
+            return `<div class="shift-label">${escapeHtml(day)}</div><div class="shift-sub">${escapeHtml(String(ex.time || ''))} · ${hours}h</div>`;
+          })
+          .join('');
+        firstCell.innerHTML = `<div class="shift-label">${shift.label}</div><div class="shift-sub">${shift.time} · ${shift.hours}h</div>${exceptionLines ? `<div style="margin-top:6px; padding-top:6px; border-top:1px dashed #9bb9aa;">${exceptionLines}</div>` : ''}`;
         tr.appendChild(firstCell);
         const shiftBand = getShiftVisualBand(shift);
         DAYS.forEach(day => {
@@ -6895,7 +6976,7 @@
         const dayBtns = document.createElement('div');
         dayBtns.className = 'day-blocks';
 
-        DAYS.forEach(day => {
+        WEEKDAY_OPTIONS.forEach(day => {
           const isBlocked = member.blockedDays.includes(day);
           const btn = document.createElement('label');
           btn.className = 'day-block-btn' + (isBlocked ? ' blocked' : '');
@@ -6935,7 +7016,7 @@
           <div class="staff-vacation-badges">
             ${member.vacationBlocks.length === 0
               ? '<span class="staff-vacation-empty">Noch keine Urlaubsblöcke hinterlegt</span>'
-              : member.vacationBlocks.map((block, idx) => `<span class="staff-vacation-badge">${idx + 1}. ${block.days || 0} Tage</span>`).join('')}
+              : member.vacationBlocks.map((block, idx) => `<span class="staff-vacation-badge">${idx + 1}. Urlaub ${block.days || 0} Tage</span>`).join('')}
           </div>
         `;
         vacationPanel.querySelector('.staff-vacation-btn').addEventListener('click', () => {
@@ -7266,12 +7347,26 @@
           </label>
           <button data-shift-remove="${index}" ${SHIFTS.length <= 1 ? 'disabled' : ''}>✕</button>
         </div>
-        <div class="shift-exception-grid" data-shift-exceptions="${index}">
-          ${DAYS.map(day => `
-            <label>${day.slice(0,2)}
-              <input type="text" data-shift-day-time="${day}" data-shift-index="${index}" value="${escapeHtml(shift.dayOverrides?.[day]?.time || '')}" placeholder="Ausnahme Zeit">
-            </label>
-          `).join('')}
+        <div class="shift-exception-box" data-shift-exception-box="${index}">
+          <div class="shift-exception-head">
+            <div class="shift-exception-title">Ausnahmen je Wochentag</div>
+            <button type="button" class="shift-exception-add" data-shift-exception-add="${index}">＋ Ausnahme</button>
+          </div>
+          <div class="shift-exception-list" data-shift-exception-list="${index}">
+            ${Object.entries(shift.dayOverrides || {}).map(([day, data]) => `
+              <div class="shift-exception-item" data-shift-exception-item="${index}">
+                <label>Tag
+                  <select data-shift-exception-day="${index}">
+                    ${WEEKDAY_OPTIONS.map(d => `<option value="${d}" ${d === day ? 'selected' : ''}>${d}</option>`).join('')}
+                  </select>
+                </label>
+                <label>Zeit
+                  <input type="text" data-shift-exception-time="${index}" value="${escapeHtml(data?.time || '')}" placeholder="z.B. 10:00-18:00">
+                </label>
+                <button type="button" class="shift-exception-remove" data-shift-exception-remove="${index}">✕</button>
+              </div>
+            `).join('')}
+          </div>
         </div>
       `).join('');
 
@@ -7307,31 +7402,82 @@
         });
       });
 
-      list.querySelectorAll('input[data-shift-day-time]').forEach(input => {
-        input.addEventListener('change', (e) => {
-          const idx = Number(e.target.dataset.shiftIndex);
-          const day = String(e.target.dataset.shiftDayTime || '');
-          if (!SHIFTS[idx] || !DAYS.includes(day)) return;
-          const time = String(e.target.value || '').trim();
-          if (!SHIFTS[idx].dayOverrides || typeof SHIFTS[idx].dayOverrides !== 'object') SHIFTS[idx].dayOverrides = {};
-          if (!time) {
-            delete SHIFTS[idx].dayOverrides[day];
-          } else {
-            const autoHours = calculateShiftHoursFromTimeRange(time);
-            SHIFTS[idx].dayOverrides[day] = {
-              time,
-              hours: autoHours === null ? (SHIFTS[idx].dayOverrides?.[day]?.hours ?? SHIFTS[idx].hours) : autoHours,
-            };
-          }
-          ensureScheduleMatchesShifts();
-          autosave();
-          renderNewStaffShiftRestrictions();
-          renderWeekStrip();
-          renderSchedule();
-          renderStaff();
-          renderStatsWeekList();
-          updateWeeklyShiftCounter();
-          renderShiftConfig();
+      const persistShiftExceptions = (idx) => {
+        const listEl = list.querySelector(`[data-shift-exception-list="${idx}"]`);
+        if (!listEl || !SHIFTS[idx]) return;
+        const nextOverrides = {};
+        listEl.querySelectorAll(`[data-shift-exception-item="${idx}"]`).forEach(item => {
+          const day = String(item.querySelector(`[data-shift-exception-day="${idx}"]`)?.value || '');
+          const time = String(item.querySelector(`[data-shift-exception-time="${idx}"]`)?.value || '').trim();
+          if (!WEEKDAY_OPTIONS.includes(day) || !time) return;
+          const autoHours = calculateShiftHoursFromTimeRange(time);
+          nextOverrides[day] = {
+            time,
+            hours: autoHours === null ? (SHIFTS[idx].hours || 0) : autoHours,
+          };
+        });
+        SHIFTS[idx].dayOverrides = nextOverrides;
+        ensureScheduleMatchesShifts();
+        autosave();
+        renderNewStaffShiftRestrictions();
+        renderWeekStrip();
+        renderSchedule();
+        renderStaff();
+        renderStatsWeekList();
+        updateWeeklyShiftCounter();
+      };
+
+      list.querySelectorAll('[data-shift-exception-add]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.dataset.shiftExceptionAdd);
+          if (!SHIFTS[idx]) return;
+          const usedDays = new Set(Object.keys(SHIFTS[idx].dayOverrides || {}));
+          const nextDay = WEEKDAY_OPTIONS.find(day => !usedDays.has(day)) || WEEKDAY_OPTIONS[0];
+          const listEl = list.querySelector(`[data-shift-exception-list="${idx}"]`);
+          if (!listEl) return;
+          const row = document.createElement('div');
+          row.className = 'shift-exception-item';
+          row.dataset.shiftExceptionItem = String(idx);
+          row.innerHTML = `
+            <label>Tag
+              <select data-shift-exception-day="${idx}">
+                ${WEEKDAY_OPTIONS.map(d => `<option value="${d}" ${d === nextDay ? 'selected' : ''}>${d}</option>`).join('')}
+              </select>
+            </label>
+            <label>Zeit
+              <input type="text" data-shift-exception-time="${idx}" value="${escapeHtml(getShiftTimeForDay(SHIFTS[idx], nextDay))}" placeholder="z.B. 10:00-18:00">
+            </label>
+            <button type="button" class="shift-exception-remove" data-shift-exception-remove="${idx}">✕</button>
+          `;
+          listEl.appendChild(row);
+          row.querySelector(`[data-shift-exception-day="${idx}"]`)?.addEventListener('change', () => persistShiftExceptions(idx));
+          row.querySelector(`[data-shift-exception-time="${idx}"]`)?.addEventListener('change', () => persistShiftExceptions(idx));
+          row.querySelector(`[data-shift-exception-remove="${idx}"]`)?.addEventListener('click', () => {
+            row.remove();
+            persistShiftExceptions(idx);
+          });
+          persistShiftExceptions(idx);
+        });
+      });
+
+      list.querySelectorAll('[data-shift-exception-day]').forEach(el => {
+        el.addEventListener('change', () => {
+          const idx = Number(el.dataset.shiftExceptionDay);
+          persistShiftExceptions(idx);
+        });
+      });
+      list.querySelectorAll('[data-shift-exception-time]').forEach(el => {
+        el.addEventListener('change', () => {
+          const idx = Number(el.dataset.shiftExceptionTime);
+          persistShiftExceptions(idx);
+        });
+      });
+      list.querySelectorAll('[data-shift-exception-remove]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.dataset.shiftExceptionRemove);
+          const row = btn.closest(`[data-shift-exception-item="${idx}"]`);
+          row?.remove();
+          persistShiftExceptions(idx);
         });
       });
 
