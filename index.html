@@ -515,6 +515,41 @@
       display: grid;
       gap: 12px;
     }
+    .week-absence-accordion {
+      border: 1px solid var(--accent-mid);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(245, 252, 247, 0.96) 0%, rgba(234, 246, 238, 0.96) 100%);
+      overflow: hidden;
+    }
+    .week-absence-accordion-header {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #1f3f31;
+      padding: 11px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .week-absence-accordion-header:hover {
+      background: rgba(228, 244, 235, 0.75);
+    }
+    .week-absence-accordion-toggle {
+      font-size: 16px;
+      line-height: 1;
+      color: #2a4a3a;
+      min-width: 14px;
+      text-align: center;
+    }
+    .week-absence-accordion-body {
+      padding: 0 0 12px;
+    }
     .week-absence-section {
       display: grid;
       gap: 5px;
@@ -541,6 +576,34 @@
       opacity: 0.62;
       font-style: italic;
       font-weight: 600;
+    }
+
+    .week-absence-hint {
+      font-size: 12px;
+      line-height: 1.35;
+      color: #b91c1c;
+      font-weight: 700;
+      background: #fff1f2;
+      border: 1px solid #fca5a5;
+      border-radius: 10px;
+      padding: 7px 9px;
+    }
+
+    .week-absence-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 2px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #0f766e;
+      text-decoration: none;
+      border: 1px solid #99f6e4;
+      background: #f0fdfa;
+      border-radius: 999px;
+      padding: 4px 9px;
+      width: fit-content;
+      cursor: pointer;
     }
 
     /* Tabs */
@@ -901,7 +964,7 @@
       border-top: 1px solid var(--border);
       padding-top: 8px;
       display: grid;
-      gap: 5px;
+      gap: 7px;
     }
 
     .week-shift-distribution-title {
@@ -912,9 +975,66 @@
     }
 
     .week-shift-distribution-entry {
-      font-size: 12.5px;
-      color: #274639;
-      line-height: 1.3;
+      border: 1.5px solid #b6d9c7;
+      border-radius: 11px;
+      background: #f8fcfa;
+      padding: 8px 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .week-shift-distribution-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 13px;
+      color: #1f3f31;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .week-shift-distribution-name {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .week-shift-distribution-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .week-shift-badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-size: 11px;
+      font-weight: 800;
+      border: 1.5px solid var(--border);
+      color: #264035;
+      background: #edf7f2;
+    }
+
+    .week-shift-badge.frueh1 {
+      background: #bae6fd;
+      border-color: #7dd3fc;
+      color: #0c4a6e;
+    }
+
+    .week-shift-badge.frueh2 {
+      background: #fde68a;
+      border-color: #facc15;
+      color: #713f12;
+    }
+
+    .week-shift-badge.spaet {
+      background: #fdba74;
+      border-color: #fb923c;
+      color: #7c2d12;
     }
 
     .shift-late-warning {
@@ -1121,10 +1241,55 @@
       white-space: nowrap;
     }
 
+    .staff-absence-alert {
+      margin-top: 8px;
+      padding: 7px 10px;
+      border-radius: 10px;
+      border: 1.5px solid #fca5a5;
+      background: #fff1f2;
+      color: #b91c1c;
+      font-size: 12.5px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
     .staff-vacation-empty {
       font-size: 12px;
       color: var(--muted);
       font-style: italic;
+    }
+
+    .staff-group-section {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .staff-group-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      background: #f7fbf8;
+    }
+
+    .staff-group-title {
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.2px;
+      color: #1f3f31;
+      text-transform: uppercase;
+    }
+
+    .staff-group-sub {
+      font-size: 12px;
+      font-weight: 700;
+      color: #4f6e5f;
     }
 
     @media (max-width: 900px) {
@@ -1678,6 +1843,60 @@
     .autoplan-distribution-delta.pos { color: #92400e; }
     .autoplan-distribution-delta.neg { color: #991b1b; }
     .autoplan-distribution-delta.neu { color: #166534; }
+
+    .autoplan-shift-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 5px;
+    }
+
+    .autoplan-absence-hint {
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      color: #b91c1c;
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .autoplan-shift-badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1.5px solid var(--border);
+      color: #264035;
+      background: #edf7f2;
+    }
+
+    .autoplan-shift-badge.frueh1 {
+      background: #bae6fd;
+      border-color: #7dd3fc;
+      color: #0c4a6e;
+    }
+
+    .autoplan-shift-badge.frueh2 {
+      background: #fde68a;
+      border-color: #facc15;
+      color: #713f12;
+    }
+
+    .autoplan-shift-badge.spaet {
+      background: #fdba74;
+      border-color: #fb923c;
+      color: #7c2d12;
+    }
+
+    .autoplan-shift-badge.warn {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #991b1b;
+    }
 
     .autoplan-decision-actions {
       display: grid;
@@ -2865,6 +3084,7 @@
       deleteUndoStack: [],
       selectedArchiveDeleteIds: [],
       optimalShiftScope: 'core_team',
+      weekAbsenceAccordionOpen: false,
     };
     let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP_SETTINGS));
     let pendingLogoBase64 = '';
@@ -3462,6 +3682,70 @@
       return member?.status === 'urlaub' || member?.status === 'krankenstand';
     }
 
+    function isAushilfeMember(member) {
+      const name = String(member?.name || '').toLowerCase();
+      const notes = String(member?.notes || '').toLowerCase();
+      return name.includes('aushilfe') || notes.includes('aushilfe');
+    }
+
+    function isUnavailableInCurrentWeek(member) {
+      if (isUnavailable(member)) return true;
+      if (!state.weekStartDate) return false;
+      const weekDateStrings = getWeekDates(new Date(`${state.weekStartDate}T12:00:00`)).map(date => date.toISOString().slice(0, 10));
+      return weekDateStrings.some(dateStr => {
+        const absenceType = getMemberDayAbsenceType(member, dateStr);
+        return absenceType === 'urlaub' || absenceType === 'krank';
+      });
+    }
+
+    function syncCoreTeamAvailability() {
+      let changed = false;
+      // Reset previously auto-promoted helpers first.
+      state.staff.forEach(member => {
+        if (!member?.autoCoreFromHelper) return;
+        if (member.coreTeam) member.coreTeam = false;
+        member.autoCoreFromHelper = false;
+        changed = true;
+      });
+
+      const unavailableCoreMembers = [];
+      state.staff.forEach(member => {
+        if (!member?.coreTeam) return;
+        if (!isUnavailableInCurrentWeek(member)) return;
+        unavailableCoreMembers.push(member);
+        member.coreTeam = false;
+        changed = true;
+      });
+
+      if (unavailableCoreMembers.length) {
+        const candidates = state.staff
+          .filter(member => !member?.coreTeam)
+          .filter(member => !isUnavailableInCurrentWeek(member))
+          .filter(isAushilfeMember);
+        const usedHelperIds = new Set();
+        unavailableCoreMembers.forEach(coreMember => {
+          const coreTarget = Number(coreMember?.targetHours ?? coreMember?.weeklyHours ?? 0) || 0;
+          const ranked = [...candidates]
+            .filter(helper => !usedHelperIds.has(helper.id))
+            .sort((a, b) => {
+              const aTarget = Number(a?.targetHours ?? a?.weeklyHours ?? 0) || 0;
+              const bTarget = Number(b?.targetHours ?? b?.weeklyHours ?? 0) || 0;
+              const aDiff = Math.abs(aTarget - coreTarget);
+              const bDiff = Math.abs(bTarget - coreTarget);
+              if (aDiff !== bDiff) return aDiff - bDiff;
+              return String(a?.name || '').localeCompare(String(b?.name || ''), 'de-DE');
+            });
+          const selectedHelper = ranked[0];
+          if (!selectedHelper) return;
+          selectedHelper.coreTeam = true;
+          selectedHelper.autoCoreFromHelper = true;
+          usedHelperIds.add(selectedHelper.id);
+          changed = true;
+        });
+      }
+      return changed;
+    }
+
     function getConsecutiveFreeDayPairs(member) {
       const blocked = new Set(member?.blockedDays || []);
       const groups = [];
@@ -3524,6 +3808,7 @@
 
     function autosave() {
       if (state.autosaveLock) return;
+      syncCoreTeamAvailability();
       const payload = {
         weekLabel: state.weekLabel,
         weekStartDate: state.weekStartDate,
@@ -3577,6 +3862,7 @@
       state.staff = Array.isArray(payload.staff)
         ? payload.staff.map(normalizeMember)
         : state.staff;
+      syncCoreTeamAvailability();
       const migratedSchedule = normalizeScheduleAssignmentsToStaff(payload.schedule, state.staff);
       state.schedule = migratedSchedule.schedule;
       state.holidayDates = Array.isArray(payload.holidayDates) ? payload.holidayDates : [];
@@ -4055,6 +4341,12 @@
       return null;
     }
 
+    function formatDateForUi(value) {
+      const parsed = parseFlexibleDate(String(value || ''));
+      if (!parsed || Number.isNaN(parsed.getTime())) return '—';
+      return parsed.toLocaleDateString('de-DE');
+    }
+
     function getBlockDates(block) {
       if (!block || typeof block !== 'object') return [];
       if (Array.isArray(block.dates) && block.dates.length) {
@@ -4272,11 +4564,16 @@
       render();
     }
 
-    function buildAutoPlanDistributionLines(staff, schedule, effectiveTargetByName) {
+    function buildAutoPlanDistributionLines(staff, schedule, effectiveTargetByName, weekDateStrings = []) {
       return staff.map(member => {
         const plannedHours = DAYS.reduce((sum, day) => sum + getAssignedHoursForDay(schedule, day, member), 0);
-        const targetHours = effectiveTargetByName[member.name] ?? getMemberEffectiveTargetHours(member);
-        const delta = Math.round((plannedHours - targetHours) * 10) / 10;
+        const hasSickWeek = weekDateStrings.some(dateStr => getMemberDayAbsenceType(member, dateStr) === 'krank');
+        const hasVacationWeek = weekDateStrings.some(dateStr => getMemberDayAbsenceType(member, dateStr) === 'urlaub');
+        const unavailableReason = member.status === 'krankenstand' || hasSickWeek
+          ? 'krank'
+          : (member.status === 'urlaub' || hasVacationWeek ? 'urlaub' : '');
+        const targetHours = unavailableReason ? 0 : (effectiveTargetByName[member.name] ?? getMemberEffectiveTargetHours(member));
+        const delta = unavailableReason ? 0 : Math.round((plannedHours - targetHours) * 10) / 10;
         const shiftDistributionData = getShiftDistributionForMember(member, schedule);
         return {
           name: member.name,
@@ -4286,8 +4583,18 @@
           shiftDistribution: shiftDistributionData.text,
           lateCount: shiftDistributionData.lateCount,
           hasLateWarning: shiftDistributionData.hasLateWarning,
+          shiftParts: shiftDistributionData.shiftParts,
+          unavailableReason,
         };
       }).sort((a, b) => a.name.localeCompare(b.name, 'de-DE'));
+    }
+
+    function buildTeamHoursSummary(distributionRows = []) {
+      const totalPlanned = Math.round(distributionRows.reduce((sum, row) => sum + (Number(row?.plannedHours) || 0), 0) * 10) / 10;
+      const totalTarget = Math.round(distributionRows.reduce((sum, row) => sum + (Number(row?.targetHours) || 0), 0) * 10) / 10;
+      const diff = Math.round((totalPlanned - totalTarget) * 10) / 10;
+      const hasUnderHours = distributionRows.some(row => Number(row?.delta) < 0);
+      return { totalPlanned, totalTarget, diff, hasUnderHours };
     }
 
     function createAutoPlanDecisionModal() {
@@ -4330,22 +4637,50 @@
       document.body.appendChild(modal);
 
       return {
-        update(distributionRows, attempt) {
+        update(distributionRows, attempt, teamHoursSummary) {
           if (titleEl) titleEl.textContent = `⚡ Auto-Plan Vorschlag #${attempt}`;
           if (subEl) {
             subEl.classList.remove('busy');
-            subEl.textContent = `Stundenverteilung Kern-Team · aktualisiert ${new Date().toLocaleTimeString('de-DE')}`;
+            const totalPlanned = Number(teamHoursSummary?.totalPlanned || 0);
+            const totalTarget = Number(teamHoursSummary?.totalTarget || 0);
+            const diff = Number(teamHoursSummary?.diff || 0);
+            const shortageHint = (teamHoursSummary?.hasUnderHours && diff < 0)
+              ? ` · Hinweis: Wochen-Soll ist um ${Math.abs(diff)}h höher als geplante Schichtstunden`
+              : '';
+            subEl.textContent = `Stundenverteilung Kern-Team · Gesamt ${totalPlanned}h / Soll ${totalTarget}h (${diff >= 0 ? '+' : ''}${diff}h)${shortageHint} · aktualisiert ${new Date().toLocaleTimeString('de-DE')}`;
           }
           const listHtml = (distributionRows || []).map(row => {
             const deltaClass = row.delta > 0 ? 'pos' : row.delta < 0 ? 'neg' : 'neu';
+            const shiftBadges = (row.shiftParts || []).map(part =>
+              `<span class="autoplan-shift-badge ${escapeHtml(part.band || '')}">${part.count}x ${escapeHtml(part.label)}</span>`
+            ).join('');
+            const absenceHint = row.unavailableReason
+              ? `<div class="autoplan-absence-hint">${row.unavailableReason === 'krank' ? '🤒 KRANK (Soll pausiert)' : '🌴 URLAUB (Soll pausiert)'} ${row.unavailableReason === 'krank' ? `<button type="button" class="week-absence-link" data-auto-jump-to-staff="1">Ersatz suchen & Kern-Team anpassen</button>` : ''}</div>`
+              : '';
             return `
               <div class="autoplan-distribution-item">
-                <span><strong>${escapeHtml(row.name)}</strong> ${row.plannedHours}h / Soll ${row.targetHours}h<br><small style="font-size:11px;color:#456657;">${escapeHtml(row.shiftDistribution || 'Keine Schichtzuordnung')}${row.hasLateWarning ? ` · ⚠️ ${row.lateCount}x Spät` : ''}</small></span>
-                <span class="autoplan-distribution-delta ${deltaClass}">${row.delta >= 0 ? '+' : ''}${row.delta}h</span>
+                <span><strong>${escapeHtml(row.name)}</strong> ${row.unavailableReason ? '' : `${row.plannedHours}h / Soll ${row.targetHours}h`}
+                  ${absenceHint}
+                  <span class="autoplan-shift-badges">
+                    ${shiftBadges || '<span class="autoplan-shift-badge">Keine Schichtzuordnung</span>'}
+                    ${row.hasLateWarning ? `<span class="autoplan-shift-badge warn">⚠️ ${row.lateCount}x Spät</span>` : ''}
+                  </span>
+                </span>
+                <span class="autoplan-distribution-delta ${deltaClass}">${row.unavailableReason ? '0h' : `${row.delta >= 0 ? '+' : ''}${row.delta}h`}</span>
               </div>
             `;
           }).join('');
           if (listEl) listEl.innerHTML = listHtml || '<div class="notice small muted">Keine Daten vorhanden.</div>';
+          listEl?.querySelectorAll('[data-auto-jump-to-staff="1"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+              resolveDecision('keep');
+              modal.remove();
+              document.body.classList.remove('autoplan-modal-open');
+              switchMainTab('staff');
+              const staffPanel = document.getElementById('staffList');
+              if (staffPanel) staffPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+          });
         },
         setBusy(isBusy) {
           if (keepBtn) keepBtn.disabled = !!isBusy;
@@ -4404,6 +4739,8 @@
       // Base 10%, +5% per absent member, max 50%.
       const absenceRatio = totalStaff > 0 ? absentStaff / totalStaff : 0;
       const dynamicTolerancePct = Math.min(0.5, 0.10 + absenceRatio * 0.5);
+      // Begrenzt die Stunden-Toleranz, damit +/-8h nicht als "normal" durchgeht.
+      const fairnessTolerancePct = Math.min(dynamicTolerancePct, 0.12);
 
       const staff = coreTeamStaff.filter(member => !isUnavailable(member));
       if (!staff.length) {
@@ -4508,6 +4845,7 @@
             });
             return;
           }
+          const dayDateStr = getDateByDayName(state.weekStartDate, day);
           // Reset per-day shift assignment tracker
           const assignedToday = new Set();
 
@@ -4531,8 +4869,10 @@
                 if (tracker.blockedDays.includes(day)) return false; // blocked days: always hard
                 if (assignedToday.has(member.name)) return false;    // no double shift: always hard
                 if (shiftRulesFail(member, tracker)) return false;   // shift rules: always hard
+                const absenceType = getMemberDayAbsenceType(member, dayDateStr);
+                if (absenceType) return false; // Urlaub/Krankenstand an diesem Tag: immer sperren
                 if (!relaxHours) {
-                  const tolerance = tracker.targetHours * dynamicTolerancePct;
+                  const tolerance = tracker.targetHours * fairnessTolerancePct;
                   if (tracker.hours + shiftHoursForDay > tracker.targetHours + tolerance) return false;
                 }
                 return true;
@@ -4543,7 +4883,7 @@
                 const hardRuleBreak = wouldBreakHardNightRule(schedule, day, shiftBand, member.name);
                 const avgLate = staff.length > 0 ? staff.reduce((sum, m) => sum + (trackers[m.name]?.lateCount || 0), 0) / staff.length : 0;
                 const avgNight = staff.length > 0 ? staff.reduce((sum, m) => sum + (trackers[m.name]?.nightCount || 0), 0) / staff.length : 0;
-                const hourScore = hourDelta > 0 ? hourDelta * 3.4 : Math.abs(hourDelta) * 0.65;
+                const hourScore = hourDelta > 0 ? hourDelta * 5.6 : Math.abs(hourDelta) * 0.65;
                 const dayPressure = tracker.workedDays.size * 1.8;
                 const latePenalty = shiftBand === 'spaet' ? Math.abs((tracker.lateCount + 1) - avgLate) * 4.2 : 0;
                 const nightPenalty = shiftBand === 'nacht' ? Math.abs((tracker.nightCount + 1) - avgNight) * 6.4 : 0;
@@ -4602,16 +4942,21 @@
         let penalty = 0;
         const avgLate = staff.length > 0 ? staff.reduce((s, m) => s + (trackers[m.name]?.lateCount || 0), 0) / staff.length : 0;
         const avgNight = staff.length > 0 ? staff.reduce((s, m) => s + (trackers[m.name]?.nightCount || 0), 0) / staff.length : 0;
+        const deltaList = [];
         staff.forEach(member => {
           const tracker = trackers[member.name];
           const delta = tracker.hours - tracker.targetHours;
-          const tolerance = tracker.targetHours * dynamicTolerancePct;
+          deltaList.push(delta);
+          const tolerance = tracker.targetHours * fairnessTolerancePct;
           // Within ±10% tolerance: tiny penalty; outside: proportional
           if (Math.abs(delta) <= tolerance) {
             penalty += Math.abs(delta) * 0.5;
           } else {
             penalty += (Math.abs(delta) - tolerance) * 3.0 + tolerance * 0.5;
           }
+          // Große Einzelabweichungen sollen nahezu nie bevorzugt werden.
+          const strongOverflow = Math.max(0, Math.abs(delta) - 6);
+          if (strongOverflow > 0) penalty += strongOverflow * strongOverflow * 22;
           if (tracker.workedDays.size > member.maxDays) penalty += (tracker.workedDays.size - member.maxDays) * 40;
           penalty += Math.abs(tracker.lateCount - avgLate) * 3.5;
           penalty += Math.abs(tracker.nightCount - avgNight) * 6.0;
@@ -4637,6 +4982,20 @@
             if (!hasConsecutivePair) penalty += 280;
           }
         });
+
+        // Team-Balance: hohe Spreizung zwischen Über- und Unterstunden vermeiden.
+        if (deltaList.length > 1) {
+          const maxDelta = Math.max(...deltaList);
+          const minDelta = Math.min(...deltaList);
+          const spread = maxDelta - minDelta;
+          const sumAbsDelta = deltaList.reduce((sum, value) => sum + Math.abs(value), 0);
+          penalty += sumAbsDelta * 2.4;
+          if (spread > 0) penalty += spread * 7.5;
+          if (spread > 12) {
+            const extraSpread = spread - 12;
+            penalty += extraSpread * extraSpread * 4.5;
+          }
+        }
 
         DAYS.forEach(day => {
           if (holidaySkipDays.has(day)) return;
@@ -4678,12 +5037,24 @@
       const fairnessInfo = fairnessHistoryEntries.length
         ? ` 📊 Fairness-Ausgleich mit ${fairnessHistoryEntries.length} Vorwochen aktiv.`
         : ' 📊 Fairness-Ausgleich ohne Historie (erste Wochen).';
-      state.autoInfo = '⚡ Automatisch erzeugt am ' + new Date().toLocaleString('de-DE') + ' (nur Kern-Team). Faire Verteilung, Schichtrotation für Spät/Nacht aktiv, Soll-Stunden gewichtet optimiert (weiche Regeln).' + holidayInfo + nightInfo + fairnessInfo;
+      const uncoveredSlots = DAYS.reduce((sum, day) =>
+        sum + SHIFTS.reduce((inner, shift) => {
+          const filled = (bestSchedule?.[day]?.[shift.key] || []).filter(Boolean).length;
+          const required = REQUIRED_STAFF_BY_SHIFT[shift.key] ?? 1;
+          return inner + Math.max(0, required - filled);
+        }, 0), 0);
+      const supportHint = uncoveredSlots > 0
+        ? ` ⚠️ ${uncoveredSlots} Slot(s) konnten nicht vollständig besetzt werden. Hinweis: Aushilfe ins Kern-Team integrieren oder manuell eintragen.`
+        : '';
+      state.autoInfo = '⚡ Automatisch erzeugt am ' + new Date().toLocaleString('de-DE') + ' (nur Kern-Team). Faire Verteilung, Schichtrotation für Spät/Nacht aktiv, Soll-Stunden gewichtet optimiert (weiche Regeln).' + holidayInfo + nightInfo + fairnessInfo + supportHint;
       autosave();
       render();
+      const weekDateStrings = weekDates.map(date => date.toISOString().slice(0, 10));
+      const distributionRows = buildAutoPlanDistributionLines(coreTeamStaff, bestSchedule, effectiveTargetByName, weekDateStrings);
       return {
         success: true,
-        distributionRows: buildAutoPlanDistributionLines(staff, bestSchedule, effectiveTargetByName),
+        distributionRows,
+        teamHoursSummary: buildTeamHoursSummary(distributionRows),
       };
     }
 
@@ -4703,7 +5074,7 @@
             return;
           }
 
-          decisionModal.update(run.distributionRows || [], attempt);
+          decisionModal.update(run.distributionRows || [], attempt, run.teamHoursSummary || null);
           const decision = await decisionModal.waitForDecision();
           if (decision === 'keep') {
             state.autoInfo += ` Vorschlag #${attempt} übernommen.`;
@@ -5253,6 +5624,7 @@
 
     // ── STATS: collect aggregated range data from multiple archive entries ───
     function collectRangeStats(entries) {
+      const round1 = (value) => Math.round((Number(value) || 0) * 10) / 10;
       // Per person aggregation
       const personMap = {};
       const weekRows = [];
@@ -5268,25 +5640,44 @@
             personMap[person.name] = {
               name: person.name,
               targetHours: person.targetHours,
+              totalPlannedHoursAll: 0,
               totalPlannedHours: 0,
               totalWorkedDays: 0,
               totalUrlaubWeeks: 0,
               totalKrankWeeks: 0,
               totalDelta: 0,
               weeksPlanned: 0,
+              weeksEvaluated: 0,
               weeklyBreakdown: [],
             };
           }
           const agg = personMap[person.name];
-          const delta = person.plannedHours - person.targetHours;
-          agg.totalPlannedHours += person.plannedHours;
-          agg.totalWorkedDays += person.workedDays;
-          agg.totalDelta += delta;
+          const hasVacation = person.urlaubDays > 0 || person.status === 'urlaub';
+          const hasSick = person.krankDays > 0 || person.status === 'krankenstand';
+          const excludeFromEvaluation = hasVacation || hasSick;
+          const evaluatedTarget = excludeFromEvaluation ? 0 : person.targetHours;
+          const delta = excludeFromEvaluation ? 0 : round1(person.plannedHours - evaluatedTarget);
+          agg.totalPlannedHoursAll = round1(agg.totalPlannedHoursAll + person.plannedHours);
+          if (!excludeFromEvaluation) {
+            agg.totalPlannedHours = round1(agg.totalPlannedHours + person.plannedHours);
+            agg.totalWorkedDays += person.workedDays;
+            agg.totalDelta = round1(agg.totalDelta + delta);
+            agg.weeksEvaluated += 1;
+          }
           agg.weeksPlanned += 1;
           if (person.urlaubDays > 0) agg.totalUrlaubWeeks += 1;
           if (person.krankDays > 0) agg.totalKrankWeeks += 1;
-          agg.weeklyBreakdown.push({ weekLabel: entry.weekLabel, weekStart, plannedHours: person.plannedHours, workedDays: person.workedDays, delta, status: person.status });
-          weekRow.persons[person.name] = { plannedHours: person.plannedHours, delta, workedDays: person.workedDays, status: person.status };
+          agg.weeklyBreakdown.push({
+            weekLabel: entry.weekLabel,
+            weekStart,
+            plannedHours: person.plannedHours,
+            workedDays: person.workedDays,
+            delta,
+            status: person.status,
+            excludeFromEvaluation,
+            evaluatedTarget,
+          });
+          weekRow.persons[person.name] = { plannedHours: person.plannedHours, delta, workedDays: person.workedDays, status: person.status, excludeFromEvaluation };
         });
         weekRows.push(weekRow);
       });
@@ -5335,13 +5726,13 @@
           </thead>
           <tbody>
             ${persons.map(p => {
-              const sollGesamt = p.targetHours * p.weeksPlanned;
-              const delta = p.totalDelta;
-              const avg = p.weeksPlanned ? Math.round(p.totalPlannedHours / p.weeksPlanned * 10) / 10 : 0;
+              const sollGesamt = Math.round((p.targetHours * p.weeksEvaluated) * 10) / 10;
+              const delta = Math.round((p.totalDelta) * 10) / 10;
+              const avg = p.weeksEvaluated ? Math.round(p.totalPlannedHours / p.weeksEvaluated * 10) / 10 : 0;
               const deltaStyle = delta > 0 ? 'color:#92400e; background:#fdf4ec;' : delta < 0 ? 'color:#991b1b; background:#fef2f2;' : 'color:#166534; background:#f0fdf4;';
               return `<tr>
                 <td style="font-weight:700;">${p.name}</td>
-                <td>${p.weeksPlanned}</td>
+                <td>${p.weeksEvaluated}<span class="small muted" style="display:block; font-size:10px;">von ${p.weeksPlanned}</span></td>
                 <td style="font-weight:700;">${p.totalPlannedHours}h</td>
                 <td>${sollGesamt}h</td>
                 <td><span style="display:inline-block; padding:3px 9px; border-radius:999px; font-weight:700; font-size:12px; ${deltaStyle}">${delta>=0?'+':''}${delta}h</span></td>
@@ -5369,7 +5760,7 @@
         head.className = 'range-week-detail-head';
         head.innerHTML = `
           <span>${person.name}</span>
-          <span class="small muted">Gesamt: ${person.totalPlannedHours}h · ${person.totalWorkedDays} Tage</span>
+          <span class="small muted">Gewertet: ${person.totalPlannedHours}h · ${person.totalWorkedDays} Tage (${person.weeksEvaluated}/${person.weeksPlanned} Wochen)</span>
         `;
         block.appendChild(head);
 
@@ -5391,12 +5782,13 @@
             <tbody>
               ${person.weeklyBreakdown.map(w => {
                 const ds = w.delta >= 0 ? 'color:#92400e;background:#fdf4ec;' : 'color:#991b1b;background:#fef2f2;';
-                const statusStr = w.status === 'urlaub' ? '🌴 Urlaub' : w.status === 'krankenstand' ? '🤒 Krank' : '✅ Aktiv';
+                const statusBase = w.status === 'urlaub' ? '🌴 Urlaub' : w.status === 'krankenstand' ? '🤒 Krank' : '✅ Aktiv';
+                const statusStr = w.excludeFromEvaluation ? `${statusBase} (nicht gewertet)` : statusBase;
                 return `<tr>
                   <td style="font-weight:600;">${w.weekLabel || '—'}</td>
                   <td>${w.weekStart}</td>
                   <td>${w.plannedHours}h</td>
-                  <td>${person.targetHours}h</td>
+                  <td>${w.evaluatedTarget}h</td>
                   <td><span style="display:inline-block;padding:2px 8px;border-radius:999px;font-weight:700;font-size:11px;${ds}">${w.delta>=0?'+':''}${w.delta}h</span></td>
                   <td>${w.workedDays}</td>
                   <td>${statusStr}</td>
@@ -5544,13 +5936,13 @@
 
       y += 8;
       persons.forEach((p, ri) => {
-        const sollGesamt = p.targetHours * p.weeksPlanned;
-        const delta = p.totalDelta;
-        const avg = p.weeksPlanned ? Math.round(p.totalPlannedHours/p.weeksPlanned*10)/10 : 0;
+        const sollGesamt = Math.round((p.targetHours * p.weeksEvaluated) * 10) / 10;
+        const delta = Math.round((p.totalDelta) * 10) / 10;
+        const avg = p.weeksEvaluated ? Math.round(p.totalPlannedHours/p.weeksEvaluated*10)/10 : 0;
         if (ri%2===0) doc.setFillColor(250,247,242); else doc.setFillColor(255,255,255);
         let cx2 = x;
         colW.forEach(w => { doc.rect(cx2, y, w, 8, 'FD'); cx2+=w; });
-        const vals = [p.name, p.weeksPlanned, p.totalPlannedHours+'h', sollGesamt+'h', (delta>=0?'+':'')+delta+'h', p.totalWorkedDays, p.totalUrlaubWeeks||'—', p.totalKrankWeeks||'—', avg+'h'];
+        const vals = [p.name, `${p.weeksEvaluated}/${p.weeksPlanned}`, p.totalPlannedHours+'h', sollGesamt+'h', (delta>=0?'+':'')+delta+'h', p.totalWorkedDays, p.totalUrlaubWeeks||'—', p.totalKrankWeeks||'—', avg+'h'];
         cx2 = x;
         doc.setTextColor(0,0,0);
         doc.setFont('helvetica','normal');
@@ -5592,8 +5984,9 @@
           if (ri%2===0) doc.setFillColor(250,247,242); else doc.setFillColor(255,255,255);
           let wc2 = wx;
           wColW.forEach(cw => { doc.rect(wc2, wy, cw, 7, 'FD'); wc2+=cw; });
-          const statusStr = w.status==='urlaub'?'Urlaub':w.status==='krankenstand'?'Krank':'Aktiv';
-          const wVals = [w.weekLabel||'—', w.weekStart, w.plannedHours+'h', person.targetHours+'h', (w.delta>=0?'+':'')+w.delta+'h', w.workedDays, statusStr];
+          const statusBase = w.status==='urlaub'?'Urlaub':w.status==='krankenstand'?'Krank':'Aktiv';
+          const statusStr = w.excludeFromEvaluation ? `${statusBase} (nicht gewertet)` : statusBase;
+          const wVals = [w.weekLabel||'—', w.weekStart, w.plannedHours+'h', (w.evaluatedTarget || 0)+'h', (w.delta>=0?'+':'')+w.delta+'h', w.workedDays, statusStr];
           wc2 = wx;
           doc.setTextColor(0,0,0);
           wVals.forEach((v,i) => {
@@ -5723,7 +6116,7 @@
 
     function getShiftDistributionForMember(member, schedule = state.schedule) {
       if (!member) {
-        return { text: 'Keine Schichtzuordnung', lateCount: 0, hasLateWarning: false };
+        return { text: 'Keine Schichtzuordnung', lateCount: 0, hasLateWarning: false, shiftParts: [] };
       }
       const parts = SHIFTS.map(shift => {
         let count = 0;
@@ -5731,10 +6124,10 @@
           const assigned = schedule?.[day]?.[shift.key] || [];
           if (assigned.some(token => isSameMemberToken(member, token))) count += 1;
         });
-        return { key: shift.key, label: shift.label, count };
+        return { key: shift.key, label: shift.label, count, band: getShiftVisualBand(shift) };
       }).filter(item => item.count > 0);
       if (!parts.length) {
-        return { text: 'Keine Schichtzuordnung', lateCount: 0, hasLateWarning: false };
+        return { text: 'Keine Schichtzuordnung', lateCount: 0, hasLateWarning: false, shiftParts: [] };
       }
       const lateCount = parts
         .filter(item => String(item.key || '').toLowerCase().includes('spaet') || String(item.label || '').toLowerCase().includes('spät') || String(item.label || '').toLowerCase().includes('spaet'))
@@ -5743,11 +6136,13 @@
         text: parts.map(item => `${item.count}x ${item.label}`).join(', '),
         lateCount,
         hasLateWarning: lateCount >= 4,
+        shiftParts: parts,
       };
     }
 
     function buildWeekShiftDistributionRows(schedule = state.schedule) {
       const rows = state.staff
+        .filter(member => !isUnavailable(member))
         .map(member => ({ name: member.name, ...getShiftDistributionForMember(member, schedule) }))
         .filter(row => row.text !== 'Keine Schichtzuordnung')
         .sort((a, b) => a.name.localeCompare(b.name, 'de-DE'));
@@ -5818,28 +6213,76 @@
         const { vacationEntries, sickEntries } = collectWeekAbsenceSummary(weekDates);
         const buildEntryHtml = (entry) => `${escapeHtml(entry.name)}: ${escapeHtml(entry.ranges.join(', '))}`;
         const shiftDistributionRows = buildWeekShiftDistributionRows(state.schedule);
+        const isOpen = !!state.weekAbsenceAccordionOpen;
         absenceStrip.innerHTML = `
-          <div class="week-absence-summary">
-            <div class="week-absence-section">
-              <div class="week-absence-title">🌴 Wer befindet sich im Urlaub?</div>
-              ${vacationEntries.length
-                ? vacationEntries.map(entry => `<div class="week-absence-entry">${buildEntryHtml(entry)}</div>`).join('')
-                : '<div class="week-absence-empty">Niemand</div>'}
-            </div>
-            <div class="week-absence-section">
-              <div class="week-absence-title">🤒 Wer befindet sich im Krankenstand?</div>
-              ${sickEntries.length
-                ? sickEntries.map(entry => `<div class="week-absence-entry">${buildEntryHtml(entry)}</div>`).join('')
-                : '<div class="week-absence-empty">Niemand</div>'}
-            </div>
-            <div class="week-shift-distribution-summary">
-              <div class="week-shift-distribution-title">📊 Schichtverteilung pro Mitarbeiter</div>
-              ${shiftDistributionRows.length
-                ? shiftDistributionRows.map(row => `<div class="week-shift-distribution-entry"><strong>${escapeHtml(row.name)}:</strong> ${escapeHtml(row.text)}${row.hasLateWarning ? ` <span class="shift-late-warning">⚠️ ${row.lateCount}x Spät</span>` : ''}</div>`).join('')
-                : '<div class="week-absence-empty">Keine Schichtzuordnung</div>'}
+          <div class="week-absence-accordion">
+            <button type="button" class="week-absence-accordion-header" data-week-absence-toggle="1" aria-expanded="${isOpen ? 'true' : 'false'}">
+              <span>📋 Abwesenheit & Schichtverteilung</span>
+              <span class="week-absence-accordion-toggle">${isOpen ? '▾' : '▸'}</span>
+            </button>
+            <div class="week-absence-accordion-body ${isOpen ? '' : 'accordion-body-collapsed'}" data-week-absence-body="1">
+              <div class="week-absence-summary">
+                <div class="week-absence-section">
+                  <div class="week-absence-title">🌴 Wer befindet sich im Urlaub?</div>
+                  ${vacationEntries.length
+                    ? vacationEntries.map(entry => `<div class="week-absence-entry">${buildEntryHtml(entry)}</div>`).join('')
+                    : '<div class="week-absence-empty">Niemand</div>'}
+                  ${vacationEntries.length
+                    ? `
+                      <div class="week-absence-hint">🔴 Hinweis: Urlaub reduziert die verfügbare Kern-Team-Kapazität im Auto-Plan.</div>
+                      <button type="button" class="week-absence-link" data-jump-to-staff="1">👥 Kern-Team jetzt bei Mitarbeiter anpassen</button>
+                    `
+                    : ''}
+                </div>
+                <div class="week-absence-section">
+                  <div class="week-absence-title">🤒 Wer befindet sich im Krankenstand?</div>
+                  ${sickEntries.length
+                    ? sickEntries.map(entry => `<div class="week-absence-entry">${buildEntryHtml(entry)}</div>`).join('')
+                    : '<div class="week-absence-empty">Niemand</div>'}
+                </div>
+                <div class="week-shift-distribution-summary">
+                  <div class="week-shift-distribution-title">📊 Schichtverteilung pro Mitarbeiter</div>
+                  ${shiftDistributionRows.length
+                    ? shiftDistributionRows.map(row => {
+                        const shiftBadges = (row.shiftParts || []).map(part => `<span class="week-shift-badge ${escapeHtml(part.band || '')}">${part.count}x ${escapeHtml(part.label)}</span>`).join('');
+                        return `
+                          <div class="week-shift-distribution-entry">
+                            <div class="week-shift-distribution-head">
+                              <span class="week-shift-distribution-name">${escapeHtml(row.name)}</span>
+                              ${row.hasLateWarning ? `<span class="shift-late-warning">⚠️ ${row.lateCount}x Spät</span>` : ''}
+                            </div>
+                            <div class="week-shift-distribution-badges">
+                              ${shiftBadges || '<span class="week-shift-badge">Keine Schichtzuordnung</span>'}
+                            </div>
+                          </div>
+                        `;
+                      }).join('')
+                    : '<div class="week-absence-empty">Keine Schichtzuordnung</div>'}
+                </div>
+              </div>
             </div>
           </div>
         `;
+        const absenceToggle = absenceStrip.querySelector('[data-week-absence-toggle="1"]');
+        const absenceBody = absenceStrip.querySelector('[data-week-absence-body="1"]');
+        const absenceArrow = absenceStrip.querySelector('.week-absence-accordion-toggle');
+        if (absenceToggle && absenceBody && absenceArrow) {
+          absenceToggle.addEventListener('click', () => {
+            state.weekAbsenceAccordionOpen = !state.weekAbsenceAccordionOpen;
+            const open = !!state.weekAbsenceAccordionOpen;
+            absenceBody.classList.toggle('accordion-body-collapsed', !open);
+            absenceToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            absenceArrow.textContent = open ? '▾' : '▸';
+          });
+        }
+        const staffJumpBtn = absenceStrip.querySelector('[data-jump-to-staff="1"]');
+        if (staffJumpBtn) {
+          staffJumpBtn.addEventListener('click', () => {
+            switchMainTab('staff');
+            const staffPanel = document.getElementById('staffList');
+            if (staffPanel) staffPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        }
       }
       const memberLookup = buildMemberLookup(state.staff);
 
@@ -6008,6 +6451,7 @@
             }
           });
           autosave();
+          renderWeekStrip();
           renderStatsWeekList();
         });
 
@@ -6237,7 +6681,7 @@
               state.schedule[day][shift.key][i] = e.target.value;
               updateWeeklyShiftCounter();
               renderSlots();
-              autosave(); renderStatsWeekList();
+              autosave(); renderWeekStrip(); renderStatsWeekList();
             });
             row.appendChild(sel);
 
@@ -6860,6 +7304,24 @@
     function renderStaff() {
       const list = document.getElementById('staffList');
       list.innerHTML = '';
+      const buildStaffSection = (title, subtitle) => {
+        const section = document.createElement('div');
+        section.className = 'staff-group-section';
+        section.innerHTML = `
+          <div class="staff-group-header">
+            <div class="staff-group-title">${escapeHtml(title)}</div>
+            <div class="staff-group-sub">${escapeHtml(subtitle)}</div>
+          </div>
+        `;
+        const body = document.createElement('div');
+        body.style.display = 'grid';
+        body.style.gap = '12px';
+        section.appendChild(body);
+        list.appendChild(section);
+        return body;
+      };
+      const regularContainer = buildStaffSection('Kern-Team & Mitarbeiter', 'Regulärer Personalbereich');
+      const helperContainer = buildStaffSection('Aushilfen', 'Separater Bereich für Ersatzkräfte');
       state.staff.forEach(member => {
         if (!member.blockedDays) member.blockedDays = [];
         syncMemberShiftRestrictions(member);
@@ -6923,6 +7385,14 @@
           });
         }
         row.appendChild(summaryDiv);
+        const currentWeekDateStrings = getWeekDates(new Date(`${state.weekStartDate}T12:00:00`)).map(date => toIsoDateLocal(date));
+        const hasVacationThisWeek = currentWeekDateStrings.some(dateStr => getMemberDayAbsenceType(member, dateStr) === 'urlaub');
+        if (hasVacationThisWeek) {
+          const vacationAlert = document.createElement('div');
+          vacationAlert.className = 'staff-absence-alert';
+          vacationAlert.textContent = '🔴 Im Urlaub (diese Woche)';
+          row.appendChild(vacationAlert);
+        }
         if (member.coreTeam) {
           const events = buildCalendarEventsForMember(
             member,
@@ -7016,7 +7486,7 @@
           <div class="staff-vacation-badges">
             ${member.vacationBlocks.length === 0
               ? '<span class="staff-vacation-empty">Noch keine Urlaubsblöcke hinterlegt</span>'
-              : member.vacationBlocks.map((block, idx) => `<span class="staff-vacation-badge">${idx + 1}. Urlaub ${block.days || 0} Tage</span>`).join('')}
+              : member.vacationBlocks.map((block, idx) => `<span class="staff-vacation-badge">${idx + 1}. Urlaub ${block.days || 0} Tage · ${formatDateForUi(block.startDate)} bis ${formatDateForUi(block.endDate)}</span>`).join('')}
           </div>
         `;
         vacationPanel.querySelector('.staff-vacation-btn').addEventListener('click', () => {
@@ -7034,7 +7504,8 @@
         });
         row.appendChild(vacationPanel);
 
-        list.appendChild(row);
+        const targetContainer = isAushilfeMember(member) ? helperContainer : regularContainer;
+        targetContainer.appendChild(row);
       });
     }
 
