@@ -276,6 +276,30 @@
       text-align: center;
       line-height: 1.2;
     }
+    .meta-coreteam-box.coreteam-complete {
+      border-color: #22c55e;
+      background: linear-gradient(135deg, #16a34a 0%, #22c55e 45%, #86efac 100%);
+      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.24), 0 8px 20px rgba(22, 163, 74, 0.32);
+      animation: coreteamGlow 1.4s ease-in-out infinite alternate;
+    }
+    .meta-coreteam-box.coreteam-complete #coreTeamAutoHint {
+      color: #ffffff;
+      text-shadow: 0 1px 0 rgba(0, 0, 0, 0.24);
+      font-weight: 900;
+    }
+    .meta-coreteam-box.coreteam-incomplete {
+      border-color: #fda4af;
+      background: linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%);
+      box-shadow: inset 0 0 0 1px rgba(244, 63, 94, 0.16);
+    }
+    .meta-coreteam-box.coreteam-incomplete #coreTeamAutoHint {
+      color: #be123c;
+      font-weight: 800;
+    }
+    @keyframes coreteamGlow {
+      from { transform: translateY(0); filter: saturate(1); }
+      to { transform: translateY(-1px); filter: saturate(1.22); }
+    }
     .meta-reset-btn {
       min-height: 48px;
       padding: 10px 16px;
@@ -2557,7 +2581,7 @@
           </div>
           <div>
             <label>Kern-Team aktiv</label>
-            <div class="meta-coreteam-box">
+            <div id="coreTeamAutoBox" class="meta-coreteam-box">
               <div id="coreTeamAutoHint" class="small muted">Kern-Team aktiv: 0/0</div>
             </div>
           </div>
@@ -3085,6 +3109,7 @@
       selectedArchiveDeleteIds: [],
       optimalShiftScope: 'core_team',
       weekAbsenceAccordionOpen: false,
+      autoSaveGuardsReady: false,
     };
     let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP_SETTINGS));
     let pendingLogoBase64 = '';
@@ -3688,6 +3713,13 @@
       return name.includes('aushilfe') || notes.includes('aushilfe');
     }
 
+    function getAushilfePriority(member) {
+      const name = String(member?.name || '').toLowerCase();
+      const match = name.match(/aushilfe\s*(\d+)/i);
+      if (match) return Number(match[1]) || 999;
+      return 999;
+    }
+
     function isUnavailableInCurrentWeek(member) {
       if (isUnavailable(member)) return true;
       if (!state.weekStartDate) return false;
@@ -3704,17 +3736,51 @@
       state.staff.forEach(member => {
         if (!member?.autoCoreFromHelper) return;
         if (member.coreTeam) member.coreTeam = false;
+        if (Number.isFinite(member.autoOriginalTargetHours)) {
+          member.targetHours = Number(member.autoOriginalTargetHours) || 0;
+        }
+        if (Number.isFinite(member.autoOriginalWeeklyHours)) {
+          member.weeklyHours = Number(member.autoOriginalWeeklyHours) || 0;
+        }
+        if (Number.isFinite(member.autoOriginalMaxDays)) {
+          member.maxDays = Number(member.autoOriginalMaxDays) || 0;
+        }
+        if (Array.isArray(member.autoOriginalBlockedDays)) {
+          member.blockedDays = [...member.autoOriginalBlockedDays];
+        }
+        if (member.autoOriginalShiftRestrictions && typeof member.autoOriginalShiftRestrictions === 'object') {
+          member.shiftRestrictions = { ...member.autoOriginalShiftRestrictions };
+          syncMemberShiftRestrictions(member);
+        }
+        delete member.autoOriginalTargetHours;
+        delete member.autoOriginalWeeklyHours;
+        delete member.autoOriginalMaxDays;
+        delete member.autoOriginalBlockedDays;
+        delete member.autoOriginalShiftRestrictions;
         member.autoCoreFromHelper = false;
         changed = true;
       });
 
       const unavailableCoreMembers = [];
       state.staff.forEach(member => {
-        if (!member?.coreTeam) return;
-        if (!isUnavailableInCurrentWeek(member)) return;
-        unavailableCoreMembers.push(member);
-        member.coreTeam = false;
-        changed = true;
+        if (!member) return;
+        const unavailableNow = isUnavailableInCurrentWeek(member);
+        if (unavailableNow && member.coreTeam) {
+          unavailableCoreMembers.push(member);
+          member.coreTeam = false;
+          member.autoCoreOutage = true;
+          changed = true;
+          return;
+        }
+        if (unavailableNow && member.autoCoreOutage) {
+          unavailableCoreMembers.push(member);
+          return;
+        }
+        if (!unavailableNow && member.autoCoreOutage) {
+          member.coreTeam = true;
+          member.autoCoreOutage = false;
+          changed = true;
+        }
       });
 
       if (unavailableCoreMembers.length) {
@@ -3725,9 +3791,17 @@
         const usedHelperIds = new Set();
         unavailableCoreMembers.forEach(coreMember => {
           const coreTarget = Number(coreMember?.targetHours ?? coreMember?.weeklyHours ?? 0) || 0;
-          const ranked = [...candidates]
+          const coreMaxDays = Number(coreMember?.maxDays ?? 0) || 0;
+          const coreBlockedDays = Array.isArray(coreMember?.blockedDays) ? [...coreMember.blockedDays] : [];
+          const coreShiftRestrictions = coreMember?.shiftRestrictions && typeof coreMember.shiftRestrictions === 'object'
+            ? { ...coreMember.shiftRestrictions }
+            : {};
+          const rankedHelpers = [...candidates]
             .filter(helper => !usedHelperIds.has(helper.id))
             .sort((a, b) => {
+              const aPriority = getAushilfePriority(a);
+              const bPriority = getAushilfePriority(b);
+              if (aPriority !== bPriority) return aPriority - bPriority;
               const aTarget = Number(a?.targetHours ?? a?.weeklyHours ?? 0) || 0;
               const bTarget = Number(b?.targetHours ?? b?.weeklyHours ?? 0) || 0;
               const aDiff = Math.abs(aTarget - coreTarget);
@@ -3735,8 +3809,34 @@
               if (aDiff !== bDiff) return aDiff - bDiff;
               return String(a?.name || '').localeCompare(String(b?.name || ''), 'de-DE');
             });
-          const selectedHelper = ranked[0];
+          const selectedHelper = rankedHelpers[0];
           if (!selectedHelper) return;
+          if (!Number.isFinite(selectedHelper.autoOriginalTargetHours)) {
+            selectedHelper.autoOriginalTargetHours = Number(selectedHelper?.targetHours ?? 0) || 0;
+          }
+          if (!Number.isFinite(selectedHelper.autoOriginalWeeklyHours)) {
+            selectedHelper.autoOriginalWeeklyHours = Number(selectedHelper?.weeklyHours ?? selectedHelper?.targetHours ?? 0) || 0;
+          }
+          if (!Number.isFinite(selectedHelper.autoOriginalMaxDays)) {
+            selectedHelper.autoOriginalMaxDays = Number(selectedHelper?.maxDays ?? 0) || 0;
+          }
+          if (!Array.isArray(selectedHelper.autoOriginalBlockedDays)) {
+            selectedHelper.autoOriginalBlockedDays = Array.isArray(selectedHelper?.blockedDays) ? [...selectedHelper.blockedDays] : [];
+          }
+          if (!selectedHelper.autoOriginalShiftRestrictions || typeof selectedHelper.autoOriginalShiftRestrictions !== 'object') {
+            selectedHelper.autoOriginalShiftRestrictions = selectedHelper?.shiftRestrictions && typeof selectedHelper.shiftRestrictions === 'object'
+              ? { ...selectedHelper.shiftRestrictions }
+              : {};
+          }
+          selectedHelper.targetHours = coreTarget;
+          selectedHelper.weeklyHours = coreTarget;
+          selectedHelper.maxDays = coreMaxDays;
+          selectedHelper.blockedDays = coreBlockedDays;
+          selectedHelper.shiftRestrictions = coreShiftRestrictions;
+          syncMemberShiftRestrictions(selectedHelper);
+          selectedHelper.notes = String(selectedHelper.notes || '').includes('[Auto-Ersatz]')
+            ? selectedHelper.notes
+            : `${selectedHelper.notes ? `${selectedHelper.notes} ` : ''}[Auto-Ersatz ${coreMember.name}: ${coreTarget}h/${coreMaxDays}T]`.trim();
           selectedHelper.coreTeam = true;
           selectedHelper.autoCoreFromHelper = true;
           usedHelperIds.add(selectedHelper.id);
@@ -4740,7 +4840,7 @@
       const absenceRatio = totalStaff > 0 ? absentStaff / totalStaff : 0;
       const dynamicTolerancePct = Math.min(0.5, 0.10 + absenceRatio * 0.5);
       // Begrenzt die Stunden-Toleranz, damit +/-8h nicht als "normal" durchgeht.
-      const fairnessTolerancePct = Math.min(dynamicTolerancePct, 0.12);
+      const fairnessTolerancePct = Math.min(dynamicTolerancePct, 0.10);
 
       const staff = coreTeamStaff.filter(member => !isUnavailable(member));
       if (!staff.length) {
@@ -4749,11 +4849,18 @@
         void showAppAlert('Alle Kern-Team-Mitglieder sind aktuell in Urlaub oder Krankenstand.', 'Auto-Plan');
         return { success: false };
       }
+      if (staff.length < 6) {
+        state.autoInfo = `⚠️ Auto-Plan abgebrochen: Kern-Team ist mit ${staff.length}/6 nicht voll besetzt. Bitte Aushilfe aktivieren.`;
+        render();
+        void showAppAlert(`Kern-Team ist mit ${staff.length}/6 nicht voll besetzt. Bitte Aushilfe 1 oder Aushilfe 2 aktivieren.`, 'Auto-Plan');
+        return { success: false };
+      }
 
       const shiftBandByKey = Object.fromEntries(SHIFTS.map(shift => [shift.key, getShiftVisualBand(shift)]));
       const effectiveTargetByName = Object.fromEntries(staff.map(member => [member.name, getMemberEffectiveTargetHours(member)]));
       const fairnessHistoryEntries = getRollingHistoryEntries(12);
       const historicalDeltaByNameKey = buildHistoricalDeltaMap(fairnessHistoryEntries);
+      const fairnessCarryoverTolerance = 4;
       // Snapshot the user-defined slot counts BEFORE the optimisation loop.
       // makeEmptySchedule() always creates 1 slot — we need to preserve the
       // extra slots the user added with the "+" button.
@@ -4776,8 +4883,83 @@
         return s;
       }
 
+      function evaluateScheduleBalance(targetSchedule) {
+        const deltas = Object.fromEntries(staff.map(member => {
+          const hours = DAYS.reduce((sum, day) => sum + getAssignedHoursForDay(targetSchedule, day, member), 0);
+          const target = effectiveTargetByName[member.name] ?? getMemberEffectiveTargetHours(member);
+          return [member.name, Math.round((hours - target) * 10) / 10];
+        }));
+        const deltaValues = Object.values(deltas);
+        const maxAbsDelta = deltaValues.length ? Math.max(...deltaValues.map(value => Math.abs(value))) : 0;
+        const sumAbsDelta = deltaValues.reduce((sum, value) => sum + Math.abs(value), 0);
+        return { deltas, maxAbsDelta, sumAbsDelta };
+      }
+
+      function rebalanceScheduleExtremes(baseSchedule) {
+        const working = JSON.parse(JSON.stringify(baseSchedule));
+        const currentWeekDateByDay = Object.fromEntries(DAYS.map(day => [day, getDateByDayName(state.weekStartDate, day)]));
+        let guard = 0;
+        while (guard < 180) {
+          guard += 1;
+          const before = evaluateScheduleBalance(working);
+          const overMembers = staff
+            .filter(member => (before.deltas[member.name] || 0) > 0.5)
+            .sort((a, b) => (before.deltas[b.name] || 0) - (before.deltas[a.name] || 0));
+          const underMembers = staff
+            .filter(member => (before.deltas[member.name] || 0) < -0.5)
+            .sort((a, b) => (before.deltas[a.name] || 0) - (before.deltas[b.name] || 0));
+          if (!overMembers.length || !underMembers.length) break;
+
+          let bestMove = null;
+          overMembers.forEach(overMember => {
+            underMembers.forEach(underMember => {
+              DAYS.forEach(day => {
+                const dayDateStr = currentWeekDateByDay[day];
+                SHIFTS.forEach(shift => {
+                  const shiftBand = shiftBandByKey[shift.key];
+                  const slots = working?.[day]?.[shift.key] || [];
+                  slots.forEach((assignedName, slotIdx) => {
+                    if (assignedName !== overMember.name) return;
+                    if (slots.includes(underMember.name)) return;
+                    if ((underMember.blockedDays || []).includes(day)) return;
+                    if (underMember.shiftRestrictions?.[shift.key]) return;
+                    if (getMemberDayAbsenceType(underMember, dayDateStr)) return;
+                    const underWorkedDays = new Set(DAYS.filter(d => SHIFTS.some(s => (working?.[d]?.[s.key] || []).includes(underMember.name))));
+                    if (!underWorkedDays.has(day) && underWorkedDays.size + 1 > Number(underMember.maxDays || 0)) return;
+                    const hasOtherShiftToday = SHIFTS.some(otherShift => {
+                      if (otherShift.key === shift.key) return false;
+                      return (working?.[day]?.[otherShift.key] || []).includes(underMember.name);
+                    });
+                    if (hasOtherShiftToday) return;
+                    const testSchedule = JSON.parse(JSON.stringify(working));
+                    testSchedule[day][shift.key][slotIdx] = underMember.name;
+                    const testValidation = validateScheduleRules(testSchedule, staff);
+                    if (testValidation.summary.consecutiveNightViolations > 0 || testValidation.summary.earlyAfterNightViolations > 0) return;
+                    const after = evaluateScheduleBalance(testSchedule);
+                    const improves = after.maxAbsDelta < before.maxAbsDelta
+                      || (after.maxAbsDelta === before.maxAbsDelta && after.sumAbsDelta < before.sumAbsDelta);
+                    if (!improves) return;
+                    if (!bestMove
+                      || after.maxAbsDelta < bestMove.after.maxAbsDelta
+                      || (after.maxAbsDelta === bestMove.after.maxAbsDelta && after.sumAbsDelta < bestMove.after.sumAbsDelta)) {
+                      bestMove = { schedule: testSchedule, after };
+                    }
+                  });
+                });
+              });
+            });
+          });
+          if (!bestMove) break;
+          Object.assign(working, bestMove.schedule);
+        }
+        return working;
+      }
+
       let bestSchedule = makeScheduleWithSlots();
       let bestPenalty = Number.POSITIVE_INFINITY;
+      let bestStrictSchedule = null;
+      let bestStrictPenalty = Number.POSITIVE_INFINITY;
+      const hardDeltaLimit = 4;
 
       for (let attempt = 0; attempt < 600; attempt++) {
         const schedule = makeScheduleWithSlots();
@@ -4869,6 +5051,7 @@
                 if (tracker.blockedDays.includes(day)) return false; // blocked days: always hard
                 if (assignedToday.has(member.name)) return false;    // no double shift: always hard
                 if (shiftRulesFail(member, tracker)) return false;   // shift rules: always hard
+                if (shiftBand === 'spaet' && tracker.lateCount >= 3) return false; // Max. 3 Spätdienste hart
                 const absenceType = getMemberDayAbsenceType(member, dayDateStr);
                 if (absenceType) return false; // Urlaub/Krankenstand an diesem Tag: immer sperren
                 if (!relaxHours) {
@@ -4898,11 +5081,14 @@
                 const fairnessBias = historyDelta < 0
                   ? -(Math.abs(historyDelta) * 0.45)
                   : historyDelta * 0.35;
+                const projectedCarryover = historyDelta + hourDelta;
+                const carryoverOverflow = Math.max(0, Math.abs(projectedCarryover) - fairnessCarryoverTolerance);
+                const carryoverPenalty = carryoverOverflow * carryoverOverflow * 4.8;
                 const noise = Math.random() * 0.9;
                 return {
                   member,
                   hardRuleBreak,
-                  score: hourScore + dayPressure + latePenalty + nightPenalty + earlyPenalty + hardRuleBreakPenalty + maxDaysPenalty + lateOverflowPenalty + fairnessBias + noise
+                  score: hourScore + dayPressure + latePenalty + nightPenalty + earlyPenalty + hardRuleBreakPenalty + maxDaysPenalty + lateOverflowPenalty + fairnessBias + carryoverPenalty + noise
                 };
               }).sort((a, b) => a.score - b.score);
 
@@ -4957,6 +5143,11 @@
           // Große Einzelabweichungen sollen nahezu nie bevorzugt werden.
           const strongOverflow = Math.max(0, Math.abs(delta) - 6);
           if (strongOverflow > 0) penalty += strongOverflow * strongOverflow * 22;
+          // Unterdeckung ist besonders kritisch: stärker bestrafen als Überdeckung.
+          if (delta < 0) penalty += Math.abs(delta) * 6.5;
+          // Harte Fairness-Schranke: sehr große Abweichungen praktisch ausschließen.
+          const severeImbalance = Math.max(0, Math.abs(delta) - 10);
+          if (severeImbalance > 0) penalty += severeImbalance * severeImbalance * 180;
           if (tracker.workedDays.size > member.maxDays) penalty += (tracker.workedDays.size - member.maxDays) * 40;
           penalty += Math.abs(tracker.lateCount - avgLate) * 3.5;
           penalty += Math.abs(tracker.nightCount - avgNight) * 6.0;
@@ -4964,7 +5155,9 @@
           if (tracker.lateCount > 3) penalty += (tracker.lateCount - 3) * 260;
           const historyDelta = historicalDeltaByNameKey[normalizePersonToken(member.name)] || 0;
           const projectedTotalDelta = historyDelta + delta;
+          const carryoverOverflow = Math.max(0, Math.abs(projectedTotalDelta) - fairnessCarryoverTolerance);
           penalty += Math.abs(projectedTotalDelta) * 1.8;
+          if (carryoverOverflow > 0) penalty += carryoverOverflow * carryoverOverflow * 14;
           // Freitage-Regel: mind. 2 aufeinanderfolgende freie Tage (wenn möglich)
           const freeDays = DAYS.filter(day => !tracker.workedDays.has(day));
           const expectedFree = Math.max(1, DAYS.length - member.maxDays);
@@ -4989,11 +5182,16 @@
           const minDelta = Math.min(...deltaList);
           const spread = maxDelta - minDelta;
           const sumAbsDelta = deltaList.reduce((sum, value) => sum + Math.abs(value), 0);
+          const maxAbsDelta = Math.max(...deltaList.map(value => Math.abs(value)));
           penalty += sumAbsDelta * 2.4;
           if (spread > 0) penalty += spread * 7.5;
           if (spread > 12) {
             const extraSpread = spread - 12;
             penalty += extraSpread * extraSpread * 4.5;
+          }
+          if (maxAbsDelta > 8) {
+            const excess = maxAbsDelta - 8;
+            penalty += excess * excess * 120;
           }
         }
 
@@ -5017,6 +5215,13 @@
         penalty += validation.summary.consecutiveNightViolations * 600;
         penalty += validation.summary.earlyAfterNightViolations * 600;
         penalty += validation.summary.tooManyNightMembers * 120;
+        const maxAbsDeltaAttempt = deltaList.length ? Math.max(...deltaList.map(value => Math.abs(value))) : 0;
+        const isStrictValid = maxAbsDeltaAttempt <= hardDeltaLimit;
+
+        if (isStrictValid && penalty < bestStrictPenalty) {
+          bestStrictPenalty = penalty;
+          bestStrictSchedule = schedule;
+        }
 
         if (penalty < bestPenalty) {
           bestPenalty = penalty;
@@ -5025,11 +5230,15 @@
         }
       }
 
-      state.schedule = bestSchedule;
+      const selectedScheduleBase = bestStrictSchedule || bestSchedule;
+      const selectedSchedule = rebalanceScheduleExtremes(selectedScheduleBase);
+      const finalBalance = evaluateScheduleBalance(selectedSchedule);
+      const usedFallbackSchedule = finalBalance.maxAbsDelta > hardDeltaLimit;
+      state.schedule = selectedSchedule;
       const holidayInfo = holidaySkipDays.size
         ? ` Feiertag(e) ausgelassen: ${[...holidaySkipDays].map(day => day.slice(0,2)).join(', ')}.`
         : '';
-      const finalValidation = validateScheduleRules(bestSchedule, staff);
+      const finalValidation = validateScheduleRules(selectedSchedule, staff);
       const hasNightWarnings = finalValidation.summary.consecutiveNightViolations > 0 || finalValidation.summary.earlyAfterNightViolations > 0;
       const nightInfo = hasNightWarnings
         ? ` ⚠️ Hinweis Nacht/Früh: Nachtfolge=${finalValidation.summary.consecutiveNightViolations}, Früh-nach-Nacht=${finalValidation.summary.earlyAfterNightViolations}.`
@@ -5039,18 +5248,21 @@
         : ' 📊 Fairness-Ausgleich ohne Historie (erste Wochen).';
       const uncoveredSlots = DAYS.reduce((sum, day) =>
         sum + SHIFTS.reduce((inner, shift) => {
-          const filled = (bestSchedule?.[day]?.[shift.key] || []).filter(Boolean).length;
+          const filled = (selectedSchedule?.[day]?.[shift.key] || []).filter(Boolean).length;
           const required = REQUIRED_STAFF_BY_SHIFT[shift.key] ?? 1;
           return inner + Math.max(0, required - filled);
         }, 0), 0);
       const supportHint = uncoveredSlots > 0
         ? ` ⚠️ ${uncoveredSlots} Slot(s) konnten nicht vollständig besetzt werden. Hinweis: Aushilfe ins Kern-Team integrieren oder manuell eintragen.`
         : '';
-      state.autoInfo = '⚡ Automatisch erzeugt am ' + new Date().toLocaleString('de-DE') + ' (nur Kern-Team). Faire Verteilung, Schichtrotation für Spät/Nacht aktiv, Soll-Stunden gewichtet optimiert (weiche Regeln).' + holidayInfo + nightInfo + fairnessInfo + supportHint;
+      const strictHint = usedFallbackSchedule
+        ? ` ⚠️ Kein Vorschlag innerhalb ±${hardDeltaLimit}h für alle Mitarbeitenden gefunden (harte Regeln/Slots begrenzen). Beste Notfall-Variante verwendet.`
+        : ` ✅ Harte Fairness-Grenze ±${hardDeltaLimit}h eingehalten.`;
+      state.autoInfo = '⚡ Automatisch erzeugt am ' + new Date().toLocaleString('de-DE') + ' (nur Kern-Team). Faire Verteilung, Schichtrotation für Spät/Nacht aktiv, Soll-Stunden gewichtet optimiert (weiche Regeln).' + strictHint + holidayInfo + nightInfo + fairnessInfo + supportHint;
       autosave();
       render();
       const weekDateStrings = weekDates.map(date => date.toISOString().slice(0, 10));
-      const distributionRows = buildAutoPlanDistributionLines(coreTeamStaff, bestSchedule, effectiveTargetByName, weekDateStrings);
+      const distributionRows = buildAutoPlanDistributionLines(coreTeamStaff, selectedSchedule, effectiveTargetByName, weekDateStrings);
       return {
         success: true,
         distributionRows,
@@ -6081,11 +6293,17 @@
 
     function updateCoreTeamAutoHint() {
       const hint = document.getElementById('coreTeamAutoHint');
-      if (!hint) return;
-      const coreTeamTotal = state.staff.filter(member => !!member.coreTeam).length;
+      const box = document.getElementById('coreTeamAutoBox');
+      if (!hint || !box) return;
+      const requiredCoreTeam = 6;
       const coreTeamAvailable = state.staff.filter(member => !!member.coreTeam && !isUnavailable(member)).length;
-      hint.textContent = `Kern-Team aktiv: ${coreTeamAvailable}/${coreTeamTotal}`;
-      hint.title = `${coreTeamAvailable} verfügbare von ${coreTeamTotal} Kern-Team-Mitgliedern`;
+      const isComplete = coreTeamAvailable >= requiredCoreTeam;
+      hint.textContent = `Kern-Team aktiv: ${coreTeamAvailable}/${requiredCoreTeam}`;
+      hint.title = isComplete
+        ? `Perfekt: ${requiredCoreTeam}/${requiredCoreTeam} Kern-Team aktiv`
+        : `Achtung: Kern-Team nur ${coreTeamAvailable}/${requiredCoreTeam}. Ziel ist immer 6/6.`;
+      box.classList.toggle('coreteam-complete', isComplete);
+      box.classList.toggle('coreteam-incomplete', !isComplete);
     }
 
     function getAssignedNamesByDay(dayName, lookup = buildMemberLookup(state.staff)) {
@@ -8057,6 +8275,7 @@
     }
 
     function render() {
+      const syncChanged = syncCoreTeamAvailability();
       renderNewStaffShiftRestrictions();
       renderMeta();
       updateCoreTeamAutoHint();
@@ -8070,6 +8289,7 @@
       renderArchive();
       updateUndoDeleteButtons();
       applyMobileMenuState();
+      if (syncChanged) autosave();
     }
 
     function updateCurrentDateTime() {
@@ -8427,6 +8647,23 @@
       setInterval(updateCurrentDateTime, 30000);
     }
 
+    function setupAutoSaveGuards() {
+      if (state.autoSaveGuardsReady) return;
+      state.autoSaveGuardsReady = true;
+      const safeAutosave = () => {
+        try {
+          autosave();
+        } catch (_) {}
+      };
+      setInterval(safeAutosave, 20000);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') safeAutosave();
+      });
+      window.addEventListener('blur', safeAutosave);
+      window.addEventListener('beforeunload', safeAutosave);
+      window.addEventListener('pagehide', safeAutosave);
+    }
+
     function loadFromStorage() {
       state.weekLabel = defaultWeekLabel();
       state.weekStartDate = getWeekDates(new Date())[0].toISOString().slice(0,10);
@@ -8575,6 +8812,7 @@
     runSelfTests();
     render();
     wireEvents();
+    setupAutoSaveGuards();
     void bootRemoteSync();
     setupInstallPrompt();
     updateCurrentDateTime();
