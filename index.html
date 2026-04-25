@@ -4481,9 +4481,10 @@
 
       // Check if we already have an entry for this week (same weekStartDate)
       const existingIndex = state.history.findIndex(e => e.weekStartDate === state.weekStartDate);
+      const existingEntry = existingIndex >= 0 ? state.history[existingIndex] : null;
 
       const archiveEntry = {
-        id: existingIndex >= 0 ? state.history[existingIndex].id : String(Date.now()),
+        id: existingEntry?.id || String(Date.now()),
         weekLabel: state.weekLabel,
         weekStartDate: state.weekStartDate,
         shifts: JSON.parse(JSON.stringify(SHIFTS)),
@@ -4494,6 +4495,10 @@
         holidayCountry: state.holidayCountry || 'AT',
         savedAt: state.savedAt,
       };
+      // Keep manual stats corrections when the same week is saved again.
+      if (existingEntry?.manualHourAdjustments && typeof existingEntry.manualHourAdjustments === 'object') {
+        archiveEntry.manualHourAdjustments = JSON.parse(JSON.stringify(existingEntry.manualHourAdjustments));
+      }
 
       if (existingIndex >= 0) {
         // OVERWRITE existing entry
@@ -5800,11 +5805,19 @@
         state.globalHourAdjustments = {};
       }
       const key = getMemberAdjustmentKey(member);
+      const byId = String(member?.id ?? '').trim();
+      const byName = normalizePersonToken(member?.name);
+      const keyedName = byName ? `name:${byName}` : '';
       const rounded = Math.round((Number(nextHours) || 0) * 10) / 10;
       if (Math.abs(rounded) < 0.05) {
         delete state.globalHourAdjustments[key];
+        if (byId) delete state.globalHourAdjustments[byId];
+        if (keyedName) delete state.globalHourAdjustments[keyedName];
+        if (byName) delete state.globalHourAdjustments[byName];
       } else {
         state.globalHourAdjustments[key] = rounded;
+        if (byId) state.globalHourAdjustments[byId] = rounded;
+        if (keyedName) state.globalHourAdjustments[keyedName] = rounded;
       }
       if (!Object.keys(state.globalHourAdjustments).length) state.globalHourAdjustments = {};
       localStorage.setItem(GLOBAL_HOUR_ADJUSTMENTS_KEY, JSON.stringify(state.globalHourAdjustments));
@@ -5827,11 +5840,19 @@
       const entry = state.history[index];
       if (!entry.manualHourAdjustments || typeof entry.manualHourAdjustments !== 'object') entry.manualHourAdjustments = {};
       const key = getMemberAdjustmentKey(member);
+      const byId = String(member?.id ?? '').trim();
+      const byName = normalizePersonToken(member?.name);
+      const keyedName = byName ? `name:${byName}` : '';
       const rounded = Math.round((Number(nextHours) || 0) * 10) / 10;
       if (Math.abs(rounded) < 0.05) {
         delete entry.manualHourAdjustments[key];
+        if (byId) delete entry.manualHourAdjustments[byId];
+        if (keyedName) delete entry.manualHourAdjustments[keyedName];
+        if (byName) delete entry.manualHourAdjustments[byName];
       } else {
         entry.manualHourAdjustments[key] = rounded;
+        if (byId) entry.manualHourAdjustments[byId] = rounded;
+        if (keyedName) entry.manualHourAdjustments[keyedName] = rounded;
       }
       if (!Object.keys(entry.manualHourAdjustments).length) delete entry.manualHourAdjustments;
       localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history));
