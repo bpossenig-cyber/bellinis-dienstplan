@@ -1737,6 +1737,92 @@
       align-items: center;
     }
 
+    /* Zeitraum-Auswertung (#statsPanel-range): alle Schriften +17 % */
+    #statsPanel-range input,
+    #statsPanel-range button,
+    #statsPanel-range select,
+    #statsPanel-range textarea,
+    #statsPanel-range td,
+    #statsPanel-range th {
+      font-size: calc(var(--fs-md) * 1.17) !important;
+    }
+    #statsPanel-range .small,
+    #statsPanel-range .muted,
+    #statsPanel-range label {
+      font-size: calc(var(--fs-sm) * 1.17) !important;
+    }
+    #statsPanel-range .notice {
+      font-size: calc(16.3px * 1.17) !important;
+    }
+    #statsPanel-range .range-table {
+      font-size: calc(16.3px * 1.17) !important;
+    }
+    #statsPanel-range .range-table th {
+      font-size: calc(15px * 1.17) !important;
+    }
+    #statsPanel-range .range-week-detail-head {
+      font-size: calc(16.3px * 1.17) !important;
+    }
+    #statsPanel-range .stats-range-title-xl {
+      font-family: 'Playfair Display', serif !important;
+      font-size: calc(20px * 1.17) !important;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    #statsPanel-range .stats-range-title-lg {
+      font-family: 'Playfair Display', serif !important;
+      font-size: calc(16px * 1.17) !important;
+      font-weight: 700;
+    }
+    #statsPanel-range .stats-range-strong-sub {
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    #statsPanel-range .stats-range-delta-item {
+      font-size: calc(13px * 1.17) !important;
+    }
+    #statsPanel-range .stats-range-person {
+      font-weight: 700;
+      font-size: calc(var(--fs-md) * 1.17) !important;
+    }
+    #statsPanel-range .stats-range-adjust-btn {
+      font-size: calc(12px * 1.17) !important;
+      padding: 4px 8px;
+      min-height: 30px;
+    }
+    #statsPanel-range .stats-range-adjust-input {
+      font-size: calc(13px * 1.17) !important;
+      width: 92px;
+      min-height: 30px;
+      padding: 4px 8px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+    }
+    #statsPanel-range .stats-range-delta-pill {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: calc(12px * 1.17) !important;
+    }
+    #statsPanel-range .stats-range-delta-pill-sm {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: calc(11px * 1.17) !important;
+    }
+    #statsPanel-range .stats-range-weeks-sub {
+      display: block;
+      font-size: calc(10px * 1.17) !important;
+    }
+    #statsPanel-range .stats-range-breakdown-title {
+      font-family: 'Playfair Display', serif !important;
+      font-size: calc(16px * 1.17) !important;
+      font-weight: 700;
+      margin: 24px 0 12px;
+    }
+
     /* Mobile schedule: hidden on desktop, shown on mobile */
     #mobileSchedule { display: none; }
     #scheduleTable { display: table; }
@@ -2580,6 +2666,10 @@
 
       /* Range controls */
       #rangeFrom, #rangeTo { font-size: 14px; }
+      #statsPanel-range #rangeFrom,
+      #statsPanel-range #rangeTo {
+        font-size: calc(14px * 1.17) !important;
+      }
       #rangeCalcBtn, #rangePdfBtn { width: 100%; }
 
       /* Archiv */
@@ -5789,6 +5879,17 @@
       return `name:${normalizePersonToken(member?.name)}`;
     }
 
+    // iPad/iOS kann denselben Tap als doppeltes Klick-Event auslösen — Cooldown verhindert Doppelzählung.
+    const statsAdjustButtonCooldown = new Map();
+    const STATS_ADJUST_BUTTON_COOLDOWN_MS = 420;
+    function runStatsAdjustButtonOnce(cooldownKey, fn) {
+      const now = Date.now();
+      const last = statsAdjustButtonCooldown.get(cooldownKey) || 0;
+      if (now - last < STATS_ADJUST_BUTTON_COOLDOWN_MS) return;
+      statsAdjustButtonCooldown.set(cooldownKey, now);
+      fn();
+    }
+
     function getGlobalHourAdjustment(member) {
       const map = state.globalHourAdjustments;
       if (!map || typeof map !== 'object') return 0;
@@ -6118,19 +6219,24 @@
           ${person.warnings.length ? `<div style="margin-top:10px; display:grid; gap:4px;">${person.warnings.map(w=>`<div class="notice warning" style="padding:8px 12px; font-size:12px;">⚠️ ${w}</div>`).join('')}</div>` : ''}
         `;
         const adjustInput = card.querySelector('[data-adjust-input]');
+        const weekCooldownKey = `week:${entry.id}:${getMemberAdjustmentKey(person)}`;
         const updateAdjustment = (nextValue) => {
           applyManualHourAdjustment(entry.id, person, nextValue);
         };
         card.querySelector('[data-adjust-action="dec"]')?.addEventListener('click', () => {
-          const current = Number(adjustInput?.value) || 0;
-          updateAdjustment(current - 1);
+          runStatsAdjustButtonOnce(weekCooldownKey, () => {
+            const current = getManualHourAdjustment(entry, person);
+            updateAdjustment(current - 1);
+          });
         });
         card.querySelector('[data-adjust-action="inc"]')?.addEventListener('click', () => {
-          const current = Number(adjustInput?.value) || 0;
-          updateAdjustment(current + 1);
+          runStatsAdjustButtonOnce(weekCooldownKey, () => {
+            const current = getManualHourAdjustment(entry, person);
+            updateAdjustment(current + 1);
+          });
         });
         card.querySelector('[data-adjust-action="reset"]')?.addEventListener('click', () => {
-          updateAdjustment(0);
+          runStatsAdjustButtonOnce(`${weekCooldownKey}:reset`, () => updateAdjustment(0));
         });
         adjustInput?.addEventListener('change', () => {
           updateAdjustment(Number(adjustInput.value) || 0);
@@ -6220,7 +6326,7 @@
       const hdr = document.createElement('div');
       hdr.style.cssText = 'margin-bottom:18px;';
       hdr.innerHTML = `
-        <div style="font-family:'Playfair Display',serif; font-size:20px; font-weight:700; margin-bottom:6px;">Zeitraum-Auswertung</div>
+        <div class="stats-range-title-xl">Zeitraum-Auswertung</div>
         <div class="small muted">${weekCount} Woche${weekCount!==1?'n':''} ausgewertet · ${entries[0]?.weekStartDate ? new Date(entries[0].weekStartDate+'T12:00').toLocaleDateString('de-DE') : '—'} bis ${entries[entries.length-1]?.weekStartDate ? new Date(entries[entries.length-1].weekStartDate+'T12:00').toLocaleDateString('de-DE') : '—'}</div>
       `;
       container.appendChild(hdr);
@@ -6234,15 +6340,15 @@
         </div>
         <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:10px;">
           <div style="border:1.5px solid #fecaca; border-radius:12px; padding:10px 12px; background:#fff5f5;">
-            <div style="font-weight:800; color:#991b1b; margin-bottom:6px;">Minusstunden</div>
+            <div class="stats-range-strong-sub" style="color:#991b1b;">Minusstunden</div>
             <div style="display:grid; gap:4px;">
-              ${minusRows.length ? minusRows.map(p => `<div style="font-size:13px;"><strong>${escapeHtml(p.name)}</strong>: ${Math.round((p.totalDelta || 0) * 10) / 10}h</div>`).join('') : '<div class="small muted">Keine Minusstunden.</div>'}
+              ${minusRows.length ? minusRows.map(p => `<div class="stats-range-delta-item"><strong>${escapeHtml(p.name)}</strong>: ${Math.round((p.totalDelta || 0) * 10) / 10}h</div>`).join('') : '<div class="small muted">Keine Minusstunden.</div>'}
             </div>
           </div>
           <div style="border:1.5px solid #fde68a; border-radius:12px; padding:10px 12px; background:#fffbeb;">
-            <div style="font-weight:800; color:#92400e; margin-bottom:6px;">Mehrstunden</div>
+            <div class="stats-range-strong-sub" style="color:#92400e;">Mehrstunden</div>
             <div style="display:grid; gap:4px;">
-              ${plusRows.length ? plusRows.map(p => `<div style="font-size:13px;"><strong>${escapeHtml(p.name)}</strong>: +${Math.round((p.totalDelta || 0) * 10) / 10}h</div>`).join('') : '<div class="small muted">Keine Mehrstunden.</div>'}
+              ${plusRows.length ? plusRows.map(p => `<div class="stats-range-delta-item"><strong>${escapeHtml(p.name)}</strong>: +${Math.round((p.totalDelta || 0) * 10) / 10}h</div>`).join('') : '<div class="small muted">Keine Mehrstunden.</div>'}
             </div>
           </div>
         </div>
@@ -6252,7 +6358,7 @@
       const globalAdjustWrap = document.createElement('div');
       globalAdjustWrap.style.cssText = 'display:grid; gap:8px; margin-bottom:18px;';
       globalAdjustWrap.innerHTML = `
-        <div style="font-family:'Playfair Display',serif; font-size:16px; font-weight:700;">Manuelle Korrektur (global)</div>
+        <div class="stats-range-title-lg">Manuelle Korrektur (global)</div>
         <div class="small muted">Diese Korrektur wird auf alle Wochen dieses Mitarbeiters angewendet.</div>
       `;
       persons
@@ -6264,28 +6370,34 @@
           const currentGlobal = getGlobalHourAdjustment(person);
           row.innerHTML = `
             <div style="display:grid; gap:2px;">
-              <div style="font-weight:700;">${escapeHtml(person.name)}</div>
+              <div class="stats-range-person">${escapeHtml(person.name)}</div>
               <div class="small muted">Aktuelle Differenz gesamt: ${person.totalDelta >= 0 ? '+' : ''}${Math.round((person.totalDelta || 0) * 10) / 10}h</div>
             </div>
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              <button type="button" data-global-adjust-action="dec" style="padding:4px 8px; font-size:12px; min-height:30px;">-1h</button>
-              <input type="number" step="0.5" data-global-adjust-input value="${currentGlobal}" style="width:92px; min-height:30px; padding:4px 8px; font-size:13px; border:1.5px solid var(--border); border-radius:8px;">
-              <button type="button" data-global-adjust-action="inc" style="padding:4px 8px; font-size:12px; min-height:30px;">+1h</button>
-              <button type="button" data-global-adjust-action="reset" style="padding:4px 8px; font-size:12px; min-height:30px;">Reset</button>
+              <button type="button" class="stats-range-adjust-btn" data-global-adjust-action="dec">-1h</button>
+              <input type="number" class="stats-range-adjust-input" step="0.5" data-global-adjust-input value="${currentGlobal}">
+              <button type="button" class="stats-range-adjust-btn" data-global-adjust-action="inc">+1h</button>
+              <button type="button" class="stats-range-adjust-btn" data-global-adjust-action="reset">Reset</button>
             </div>
           `;
           const input = row.querySelector('[data-global-adjust-input]');
-          const updateGlobal = (nextValue) => applyGlobalHourAdjustment(person, nextValue);
+          const memberKeyStub = { name: person.name, id: person.id };
+          const cooldownKey = `global:${getMemberAdjustmentKey(memberKeyStub)}`;
+          const updateGlobal = (nextValue) => applyGlobalHourAdjustment(memberKeyStub, nextValue);
           row.querySelector('[data-global-adjust-action="dec"]')?.addEventListener('click', () => {
-            const current = Number(input?.value) || 0;
-            updateGlobal(current - 1);
+            runStatsAdjustButtonOnce(cooldownKey, () => {
+              const current = getGlobalHourAdjustment(memberKeyStub);
+              updateGlobal(current - 1);
+            });
           });
           row.querySelector('[data-global-adjust-action="inc"]')?.addEventListener('click', () => {
-            const current = Number(input?.value) || 0;
-            updateGlobal(current + 1);
+            runStatsAdjustButtonOnce(cooldownKey, () => {
+              const current = getGlobalHourAdjustment(memberKeyStub);
+              updateGlobal(current + 1);
+            });
           });
           row.querySelector('[data-global-adjust-action="reset"]')?.addEventListener('click', () => {
-            updateGlobal(0);
+            runStatsAdjustButtonOnce(`${cooldownKey}:reset`, () => updateGlobal(0));
           });
           input?.addEventListener('change', () => {
             updateGlobal(Number(input.value) || 0);
@@ -6320,10 +6432,10 @@
               const deltaStyle = delta > 0 ? 'color:#92400e; background:#fdf4ec;' : delta < 0 ? 'color:#991b1b; background:#fef2f2;' : 'color:#166534; background:#f0fdf4;';
               return `<tr>
                 <td style="font-weight:700;">${p.name}</td>
-                <td>${p.weeksEvaluated}<span class="small muted" style="display:block; font-size:10px;">von ${p.weeksPlanned}</span></td>
+                <td>${p.weeksEvaluated}<span class="small muted stats-range-weeks-sub">von ${p.weeksPlanned}</span></td>
                 <td style="font-weight:700;">${p.totalPlannedHours}h</td>
                 <td>${sollGesamt}h</td>
-                <td><span style="display:inline-block; padding:3px 9px; border-radius:999px; font-weight:700; font-size:12px; ${deltaStyle}">${delta>=0?'+':''}${delta}h</span></td>
+                <td><span class="stats-range-delta-pill" style="${deltaStyle}">${delta>=0?'+':''}${delta}h</span></td>
                 <td>${p.totalWorkedDays}</td>
                 <td>🌴 ${p.totalUrlaubDays}</td>
                 <td>🤒 ${p.totalKrankDays}</td>
@@ -6337,7 +6449,7 @@
 
       // Week-by-week breakdown per person
       const breakdownTitle = document.createElement('div');
-      breakdownTitle.style.cssText = 'font-family:"Playfair Display",serif; font-size:16px; font-weight:700; margin:24px 0 12px;';
+      breakdownTitle.className = 'stats-range-breakdown-title';
       breakdownTitle.textContent = 'Wöchentliche Aufschlüsselung';
       container.appendChild(breakdownTitle);
 
@@ -6377,7 +6489,7 @@
                   <td>${w.weekStart}</td>
                   <td>${w.plannedHours}h</td>
                   <td>${w.evaluatedTarget}h</td>
-                  <td><span style="display:inline-block;padding:2px 8px;border-radius:999px;font-weight:700;font-size:11px;${ds}">${w.delta>=0?'+':''}${w.delta}h</span></td>
+                  <td><span class="stats-range-delta-pill-sm" style="${ds}">${w.delta>=0?'+':''}${w.delta}h</span></td>
                   <td>${w.workedDays}</td>
                   <td>${statusStr}</td>
                 </tr>`;
