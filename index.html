@@ -283,8 +283,8 @@
       animation: coreteamGlow 1.4s ease-in-out infinite alternate;
     }
     .meta-coreteam-box.coreteam-complete #coreTeamAutoHint {
-      color: #ffffff;
-      text-shadow: 0 1px 0 rgba(0, 0, 0, 0.24);
+      color: #222;
+      text-shadow: none;
       font-weight: 900;
     }
     .meta-coreteam-box.coreteam-incomplete {
@@ -6278,9 +6278,9 @@
       paintWebHeader(10, 10, pw - 20, 24, 5);
       doc.setTextColor(255,255,255);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(18);
+      doc.setFontSize(19);
       doc.text('Bellinis — Zeitraum-Auswertung', 18, 22);
-      doc.setFontSize(9);
+      doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.text(`${weekCount} Wochen · Sparkassenplatz 2, 6020 Innsbruck`, 18, 29);
 
@@ -6289,7 +6289,7 @@
       const to   = entries[entries.length-1]?.weekStartDate ? new Date(entries[entries.length-1].weekStartDate+'T12:00').toLocaleDateString('de-DE') : '—';
       doc.setTextColor(0,0,0);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(11);
+      doc.setFontSize(12);
       doc.text(`Zeitraum: ${from} – ${to}`, 14, 44);
 
       // Summary table (full-width, readable headers)
@@ -6314,7 +6314,7 @@
           doc.rect(cx, y, colW[i], summaryHeaderHeight, 'S');
           doc.setTextColor(255,255,255);
           doc.setFont('helvetica', 'bold');
-          doc.setFontSize(8.6);
+          doc.setFontSize(9.4);
           doc.text(col, cx + 2, y + 8.2, { maxWidth: colW[i] - 3 });
           cx += colW[i];
         });
@@ -6334,7 +6334,7 @@
         cx2 = x;
         doc.setTextColor(0,0,0);
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8.8);
+        doc.setFontSize(9.4);
         vals.forEach((v,i) => {
           if (i===0) doc.setFont('helvetica', 'bold'); else doc.setFont('helvetica', 'normal');
           doc.text(String(v), cx2 + 2, y + 6.1, { maxWidth: colW[i] - 3 });
@@ -6356,7 +6356,7 @@
         paintWebHeader(10, 10, pw - 20, 14, 4);
         doc.setTextColor(255,255,255);
         doc.setFont('helvetica','bold');
-        doc.setFontSize(13);
+        doc.setFontSize(14);
         doc.text(person.name + ' — Wöchentliche Aufschlüsselung', 16, 20);
 
         const wCols = ['Wochenplan', 'Startdatum', 'Geplante Stunden', 'Sollstunden', 'Differenz', 'Arbeitstage', 'Status'];
@@ -6377,7 +6377,7 @@
             doc.rect(wc, wy, wColW[i], weeklyHeaderHeight, 'S');
             doc.setTextColor(255,255,255);
             doc.setFont('helvetica','bold');
-            doc.setFontSize(8.4);
+            doc.setFontSize(9.1);
             doc.text(col, wc + 2, wy + 7.4, { maxWidth: wColW[i] - 3 });
             wc += wColW[i];
           });
@@ -6397,7 +6397,7 @@
           doc.setTextColor(0,0,0);
           wVals.forEach((v,i) => {
             doc.setFont('helvetica', i===0?'bold':'normal');
-            doc.setFontSize(8.8);
+            doc.setFontSize(9.4);
             doc.text(String(v), wc2 + 2, wy + 5.7, { maxWidth: wColW[i] - 3 });
             wc2 += wColW[i];
           });
@@ -8055,39 +8055,82 @@
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
       const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
       const weekDates = getWeekDates(new Date(`${state.weekStartDate}T12:00:00`));
 
-      doc.setFillColor(200, 69, 10);
-      doc.roundedRect(10, 10, pageWidth - 20, 28, 6, 6, 'F');
+      // Same PDF theme system as range export:
+      // header fixed #222222, rest dynamic from active UI theme.
+      const headerFixed = [34, 34, 34]; // #222222
+      const rootStyles = getComputedStyle(document.documentElement);
+      const cssColorToRgb = (value, fallback) => {
+        const input = String(value || '').trim();
+        if (!input) return fallback;
+        const probe = document.createElement('span');
+        probe.style.color = input;
+        probe.style.position = 'absolute';
+        probe.style.left = '-9999px';
+        document.body.appendChild(probe);
+        const computed = getComputedStyle(probe).color;
+        probe.remove();
+        const match = computed.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+        if (!match) return fallback;
+        return [Number(match[1]) || 0, Number(match[2]) || 0, Number(match[3]) || 0];
+      };
+      const mixRgb = (a, b, t = 0.5) => [
+        Math.round((a[0] || 0) * (1 - t) + (b[0] || 0) * t),
+        Math.round((a[1] || 0) * (1 - t) + (b[1] || 0) * t),
+        Math.round((a[2] || 0) * (1 - t) + (b[2] || 0) * t),
+      ];
+      const tableBg = cssColorToRgb(rootStyles.getPropertyValue('--accent-soft'), [218, 236, 224]);      // #daece0 fallback
+      const tableAltBg = mixRgb(tableBg, [255, 255, 255], 0.35);
+      const tableBorder = mixRgb(tableBg, [101, 110, 115], 0.45);
+      const tableHeaderBg = [34, 34, 34]; // #222222
+      const shiftInfoBg = mixRgb(tableBg, [253, 240, 232], 0.35);
+
+      const paintPageBg = () => {
+        doc.setFillColor(...tableBg);
+        doc.rect(0, 0, pageWidth, pageHeight, 'F');
+      };
+      const paintHeader = (x, y, w, h, r = 6) => {
+        doc.setFillColor(...headerFixed);
+        doc.roundedRect(x, y, w, h, r, r, 'F');
+      };
+
+      paintPageBg();
+      paintHeader(10, 10, pageWidth - 20, 28, 6);
       doc.setTextColor(255,255,255);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(22);
+      doc.setFontSize(23);
       doc.text('Bellinis Dienstplan', 18, 23);
-      doc.setFontSize(10);
+      doc.setFontSize(11);
       doc.setFont('helvetica', 'normal');
       doc.text('Sparkassenplatz 2, 6020 Innsbruck · +43 699 12268051 · office@judys-bellinis.at', 18, 31);
 
       doc.setTextColor(0,0,0);
-      doc.setFontSize(13);
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.text(state.weekLabel || 'Dienstplan', 14, 50);
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
+      doc.setFontSize(11);
       doc.text(`Woche ab ${new Date(`${state.weekStartDate}T12:00:00`).toLocaleDateString('de-DE')}`, 14, 56);
 
       const startX = 14, startY = 62, colWidth = 38, rowHeight = 22;
 
-      doc.setFillColor(26, 18, 8);
+      doc.setFillColor(...tableHeaderBg);
       doc.rect(startX, startY, 30, 12, 'F');
+      doc.setDrawColor(...tableBorder);
+      doc.rect(startX, startY, 30, 12, 'S');
       doc.setTextColor(255,255,255);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
+      doc.setFontSize(10);
       doc.text('Schicht', startX + 2, startY + 8);
 
       weekDates.forEach((date, index) => {
         const x = startX + 30 + (index * colWidth);
-        doc.setFillColor(26, 18, 8);
+        doc.setFillColor(...tableHeaderBg);
         doc.rect(x, startY, colWidth, 12, 'F');
+        doc.setDrawColor(...tableBorder);
+        doc.rect(x, startY, colWidth, 12, 'S');
         doc.setTextColor(255,255,255);
         doc.setFont('helvetica', 'bold');
         doc.text(DAYS[index], x + 2, startY + 5);
@@ -8098,11 +8141,12 @@
       SHIFTS.forEach((shift, rowIndex) => {
         const y = startY + 12 + rowIndex * rowHeight;
         doc.setTextColor(0,0,0);
-        doc.setFillColor(253, 240, 232);
+        doc.setFillColor(...shiftInfoBg);
         doc.rect(startX, y, 30, rowHeight, 'F');
+        doc.setDrawColor(...tableBorder);
         doc.rect(startX, y, 30, rowHeight);
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(8);
+        doc.setFontSize(8.8);
         doc.text(shift.label, startX + 2, y + 6);
         doc.setFont('helvetica', 'normal');
         doc.text(shift.time, startX + 2, y + 11);
@@ -8110,12 +8154,13 @@
 
         DAYS.forEach((day, index) => {
           const x = startX + 30 + (index * colWidth);
-          if (rowIndex % 2 === 0) doc.setFillColor(238, 244, 240);
-          else doc.setFillColor(255,255,255);
+          if (rowIndex % 2 === 0) doc.setFillColor(...tableBg);
+          else doc.setFillColor(...tableAltBg);
+          doc.setDrawColor(...tableBorder);
           doc.rect(x, y, colWidth, rowHeight, 'FD');
           const people = (state.schedule[day]?.[shift.key] || []).filter(Boolean);
           doc.setFont('helvetica', 'normal');
-          doc.setFontSize(9);
+          doc.setFontSize(9.6);
           doc.text(people[0] || '—', x + 2, y + 8, { maxWidth: colWidth - 4 });
           if (people[1]) doc.text(people[1], x + 2, y + 15, { maxWidth: colWidth - 4 });
         });
@@ -8128,10 +8173,11 @@
         const ensureSpace = (needed = 6) => {
           if (infoY + needed <= pageHeight - 10) return;
           doc.addPage();
+          paintPageBg();
           infoY = 16;
         };
         ensureSpace(8);
-        doc.setFontSize(10);
+        doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
         doc.text(title, 14, infoY);
         infoY += 5;
