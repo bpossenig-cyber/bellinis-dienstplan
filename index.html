@@ -4556,6 +4556,25 @@
       return reconstructedDates;
     }
 
+    function countBlockDaysByType(dates, type, holidaySet = getKnownHolidayDateSet()) {
+      const normalizedDates = Array.isArray(dates) ? [...new Set(dates.filter(Boolean))] : [];
+      if (!normalizedDates.length) return 0;
+      if (type !== 'urlaub') return normalizedDates.length;
+      return normalizedDates.filter(dateStr => {
+        const parsed = parseFlexibleDate(String(dateStr));
+        if (!parsed || Number.isNaN(parsed.getTime())) return false;
+        const isSunday = parsed.getDay() === 0;
+        const isHoliday = holidaySet.has(String(dateStr));
+        return !isSunday && !isHoliday;
+      }).length;
+    }
+
+    function getBlockDaysForType(block, type, holidaySet = getKnownHolidayDateSet()) {
+      const dates = getBlockDates(block);
+      if (dates.length) return countBlockDaysByType(dates, type, holidaySet);
+      return Number(block?.days) || 0;
+    }
+
     function normalizeBlocks(blocks) {
       if (!Array.isArray(blocks)) return [];
       return blocks
@@ -7187,7 +7206,7 @@
               ? '<span style="font-size:12px; color:var(--muted);">Noch kein Urlaubsblock hinterlegt</span>'
               : member.vacationBlocks.slice(0, 5).map((block, idx) => `
                 <div class="block-badge" style="background:#e8f5ec; border:1px solid #7dbf8e; padding:6px 8px; border-radius:8px; color:#166534;">
-                  <div style="font-size:11px; font-weight:700;">${idx + 1}. Block · ${getBlockDates(block).length || block.days || 0} Tage</div>
+                  <div style="font-size:11px; font-weight:700;">${idx + 1}. Block · ${getBlockDaysForType(block, 'urlaub')} Tage</div>
                   <div style="font-size:11px; margin-top:2px;">${formatDateLabel(block.startDate)} bis ${formatDateLabel(block.endDate)}</div>
                 </div>
               `).join('')
@@ -7206,7 +7225,7 @@
             <button class="calendar-btn" data-type="krank" data-staff-id="${member.id}" style="padding:6px 10px; font-size:13px;">📅 Krank</button>
           </div>
           <div class="sick-blocks-display" data-staff-id="${member.id}" style="margin-top:6px; display:flex; flex-wrap:wrap; gap:4px; min-height:20px;">
-            ${member.sickBlocks.map((block, idx) => `<span class="block-badge" style="background:#fff5f5; border:1px solid #fca5a5; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600; color:#dc2626;">${idx + 1}. ${getBlockDates(block).length || block.days || 0} Tage</span>`).join('')}
+            ${member.sickBlocks.map((block, idx) => `<span class="block-badge" style="background:#fff5f5; border:1px solid #fca5a5; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:600; color:#dc2626;">${idx + 1}. ${getBlockDaysForType(block, 'krank')} Tage</span>`).join('')}
           </div>
         `;
         krankList.appendChild(krankItem);
@@ -7329,7 +7348,7 @@
         currentSelection = {
           startDate: normalizedDates[0] || block.startDate,
           endDate: normalizedDates[normalizedDates.length - 1] || block.endDate,
-          days: normalizedDates.length || block.days,
+          days: getBlockDaysForType(block, type, holidaySet),
           selectedDates: normalizedDates,
           editingIndex: idx,
           lastSelectedDate: normalizedDates[normalizedDates.length - 1] || null
@@ -7348,7 +7367,7 @@
                   <div style="font-weight:600; flex:1;">${idx + 1}. Block</div>
                   <button type="button" class="remove-block-btn" data-index="${idx}" style="padding:2px 6px; background:rgba(220,38,38,0.9); color:#fff; border:none; border-radius:3px; cursor:pointer; font-size:11px;">✕</button>
                 </div>
-                <div style="font-size:13px; margin-top:4px;">${block.days} Tage</div>
+                <div style="font-size:13px; margin-top:4px;">${getBlockDaysForType(block, type, holidaySet)} Tage</div>
                 <div style="font-size:11px; color:rgba(0,0,0,0.6); margin-top:2px;">${block.startDate} bis ${block.endDate}</div>
               </div>
             `).join('');
@@ -7390,12 +7409,13 @@
       function saveCurrentSelection() {
         const finalDates = currentSelection.selectedDates;
         if (finalDates.length > 0) {
+          const countedDays = countBlockDaysByType(finalDates, type, holidaySet);
           if (currentSelection.editingIndex !== null) {
             // Update existing block
             blocks[currentSelection.editingIndex] = {
               startDate: finalDates[0],
               endDate: finalDates[finalDates.length - 1],
-              days: finalDates.length,
+              days: countedDays,
               dates: [...finalDates]
             };
           } else {
@@ -7403,7 +7423,7 @@
             blocks.push({
               startDate: finalDates[0],
               endDate: finalDates[finalDates.length - 1],
-              days: finalDates.length,
+              days: countedDays,
               dates: [...finalDates]
             });
             currentSelection.editingIndex = blocks.length - 1;
@@ -7590,7 +7610,7 @@
       const refreshSelectionMeta = () => {
         if (!selection.selectedDates) selection.selectedDates = [];
         selection.selectedDates = [...new Set(selection.selectedDates)].sort();
-        selection.days = selection.selectedDates.length;
+        selection.days = countBlockDaysByType(selection.selectedDates, type, holidaySet);
         const counter = document.querySelector('.days-count');
         if (counter) counter.textContent = selection.days;
         if (selection.selectedDates.length > 0) {
@@ -7870,7 +7890,7 @@
         rulesRow.appendChild(daysDiv);
         row.appendChild(rulesRow);
 
-        const totalVacationDays = member.vacationBlocks.reduce((sum, block) => sum + (Number(block.days) || 0), 0);
+        const totalVacationDays = member.vacationBlocks.reduce((sum, block) => sum + getBlockDaysForType(block, 'urlaub'), 0);
         const vacationPanel = document.createElement('div');
         vacationPanel.className = 'staff-vacation-panel';
         vacationPanel.innerHTML = `
@@ -7889,7 +7909,7 @@
           <div class="staff-vacation-badges">
             ${member.vacationBlocks.length === 0
               ? '<span class="staff-vacation-empty">Noch keine Urlaubsblöcke hinterlegt</span>'
-              : member.vacationBlocks.map((block, idx) => `<span class="staff-vacation-badge">${idx + 1}. Urlaub ${block.days || 0} Tage · ${formatDateForUi(block.startDate)} bis ${formatDateForUi(block.endDate)}</span>`).join('')}
+              : member.vacationBlocks.map((block, idx) => `<span class="staff-vacation-badge">${idx + 1}. Urlaub ${getBlockDaysForType(block, 'urlaub')} Tage · ${formatDateForUi(block.startDate)} bis ${formatDateForUi(block.endDate)}</span>`).join('')}
           </div>
         `;
         vacationPanel.querySelector('.staff-vacation-btn').addEventListener('click', () => {
