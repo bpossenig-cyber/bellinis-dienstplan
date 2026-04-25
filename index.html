@@ -1867,13 +1867,19 @@
 
     .autoplan-decision-modal .modal-content {
       max-width: 640px;
-      max-height: none;
+      max-height: calc(100vh - 16px);
+      width: min(640px, calc(100vw - 16px));
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
     }
 
     .autoplan-decision-body {
       display: grid;
       gap: 12px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-right: 2px;
     }
 
     .autoplan-decision-sub {
@@ -2220,15 +2226,7 @@
 
       /* Auto-Plan Popup auf Mobile scrollbar */
       .autoplan-decision-modal .modal-content {
-        width: calc(100vw - 16px);
-        max-height: calc(100vh - 16px);
-        display: flex;
-        flex-direction: column;
-      }
-      .autoplan-decision-body {
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        padding-right: 2px;
+        width: min(640px, calc(100vw - 16px));
       }
       .autoplan-decision-actions {
         position: sticky;
