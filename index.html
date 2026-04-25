@@ -449,6 +449,42 @@
     #weekStartDate::-webkit-datetime-edit-year-field {
       color: #ffffff;
     }
+    .week-start-date-wrap {
+      position: relative;
+    }
+    .week-start-date-empty-label {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255, 255, 255, 0.92);
+      font-weight: 700;
+      pointer-events: none;
+      user-select: none;
+      display: none;
+    }
+    .week-start-date-wrap.is-empty .week-start-date-empty-label {
+      display: block;
+    }
+    .week-start-date-wrap.is-empty #weekStartDate::-webkit-datetime-edit,
+    .week-start-date-wrap.is-empty #weekStartDate::-webkit-datetime-edit-fields-wrapper,
+    .week-start-date-wrap.is-empty #weekStartDate::-webkit-datetime-edit-text,
+    .week-start-date-wrap.is-empty #weekStartDate::-webkit-datetime-edit-month-field,
+    .week-start-date-wrap.is-empty #weekStartDate::-webkit-datetime-edit-day-field,
+    .week-start-date-wrap.is-empty #weekStartDate::-webkit-datetime-edit-year-field {
+      color: transparent !important;
+    }
+    .week-start-date-wrap.is-empty #weekStartDate {
+      caret-color: transparent;
+    }
+    .week-start-date-wrap:not(.is-empty) #weekStartDate::-webkit-datetime-edit,
+    .week-start-date-wrap:not(.is-empty) #weekStartDate::-webkit-datetime-edit-fields-wrapper,
+    .week-start-date-wrap:not(.is-empty) #weekStartDate::-webkit-datetime-edit-text,
+    .week-start-date-wrap:not(.is-empty) #weekStartDate::-webkit-datetime-edit-month-field,
+    .week-start-date-wrap:not(.is-empty) #weekStartDate::-webkit-datetime-edit-day-field,
+    .week-start-date-wrap:not(.is-empty) #weekStartDate::-webkit-datetime-edit-year-field {
+      color: #ffffff !important;
+    }
 
     textarea { min-height: 80px; resize: vertical; }
 
@@ -2650,7 +2686,10 @@
         <div class="meta-row">
           <div>
             <label for="weekStartDate">Wochenplan erstellen</label>
-            <input id="weekStartDate" type="date" />
+            <div id="weekStartDateWrap" class="week-start-date-wrap">
+              <input id="weekStartDate" type="date" />
+              <span id="weekStartDateEmptyLabel" class="week-start-date-empty-label">Datum wählen</span>
+            </div>
           </div>
           <div>
             <label for="weekLabel" class="mobile-hide-label">Planname / Woche</label>
@@ -3176,6 +3215,7 @@
       selectedArchiveDeleteIds: [],
       optimalShiftScope: 'core_team',
       weekAbsenceAccordionOpen: false,
+      weekStartDateUiEmpty: false,
       autoSaveGuardsReady: false,
     };
     let appSettings = JSON.parse(JSON.stringify(DEFAULT_APP_SETTINGS));
@@ -4753,6 +4793,7 @@
       });
       state.weekLabel = defaultWeekLabel();
       state.weekStartDate = getWeekDates(new Date())[0].toISOString().slice(0,10);
+      state.weekStartDateUiEmpty = true;
       state.savedAt = '';
       state.autoInfo = '';
       state.selectedArchiveId = '';
@@ -4768,7 +4809,7 @@
       render();
     }
 
-    function buildAutoPlanDistributionLines(staff, schedule, effectiveTargetByName, weekDateStrings = []) {
+    function buildAutoPlanDistributionLines(staff, schedule, effectiveTargetByName, weekDateStrings = [], historicalDeltaByNameKey = {}) {
       return staff.map(member => {
         const plannedHours = DAYS.reduce((sum, day) => sum + getAssignedHoursForDay(schedule, day, member), 0);
         const workedDays = DAYS.filter(day =>
@@ -4781,17 +4822,20 @@
           : (member.status === 'urlaub' || hasVacationWeek ? 'urlaub' : '');
         const targetHours = unavailableReason ? 0 : (effectiveTargetByName[member.name] ?? getMemberEffectiveTargetHours(member));
         const delta = unavailableReason ? 0 : Math.round((plannedHours - targetHours) * 10) / 10;
+        const historyDeltaHours = Math.round((Number(historicalDeltaByNameKey[normalizePersonToken(member.name)] || 0)) * 10) / 10;
         const shiftDistributionData = getShiftDistributionForMember(member, schedule);
         return {
           name: member.name,
           plannedHours: Math.round(plannedHours * 10) / 10,
           targetHours: Math.round(targetHours * 10) / 10,
           delta,
+          historyDeltaHours,
           shiftDistribution: shiftDistributionData.text,
           lateCount: shiftDistributionData.lateCount,
           hasLateWarning: shiftDistributionData.hasLateWarning,
           shiftParts: shiftDistributionData.shiftParts,
           unavailableReason,
+          workedDaysCount: workedDays.length,
           workedDaysText: workedDays.length ? workedDays.join(', ') : 'Keine Arbeitstage',
         };
       }).sort((a, b) => a.name.localeCompare(b.name, 'de-DE'));
@@ -4800,9 +4844,10 @@
     function buildTeamHoursSummary(distributionRows = []) {
       const totalPlanned = Math.round(distributionRows.reduce((sum, row) => sum + (Number(row?.plannedHours) || 0), 0) * 10) / 10;
       const totalTarget = Math.round(distributionRows.reduce((sum, row) => sum + (Number(row?.targetHours) || 0), 0) * 10) / 10;
+      const totalWorkedDays = distributionRows.reduce((sum, row) => sum + (Number(row?.workedDaysCount) || 0), 0);
       const diff = Math.round((totalPlanned - totalTarget) * 10) / 10;
       const hasUnderHours = distributionRows.some(row => Number(row?.delta) < 0);
-      return { totalPlanned, totalTarget, diff, hasUnderHours };
+      return { totalPlanned, totalTarget, totalWorkedDays, diff, hasUnderHours };
     }
 
     function createAutoPlanDecisionModal() {
@@ -4851,11 +4896,12 @@
             subEl.classList.remove('busy');
             const totalPlanned = Number(teamHoursSummary?.totalPlanned || 0);
             const totalTarget = Number(teamHoursSummary?.totalTarget || 0);
+            const totalWorkedDays = Number(teamHoursSummary?.totalWorkedDays || 0);
             const diff = Number(teamHoursSummary?.diff || 0);
             const shortageHint = (teamHoursSummary?.hasUnderHours && diff < 0)
               ? ` · Hinweis: Wochen-Soll ist um ${Math.abs(diff)}h höher als geplante Schichtstunden`
               : '';
-            subEl.textContent = `Stundenverteilung Kern-Team · Gesamt ${totalPlanned}h / Soll ${totalTarget}h (${diff >= 0 ? '+' : ''}${diff}h)${shortageHint} · aktualisiert ${new Date().toLocaleTimeString('de-DE')}`;
+            subEl.textContent = `Stundenverteilung Kern-Team · Gesamt ${totalPlanned}h / Soll ${totalTarget}h (${diff >= 0 ? '+' : ''}${diff}h) · Gesamtarbeitstage ${totalWorkedDays}${shortageHint} · aktualisiert ${new Date().toLocaleTimeString('de-DE')}`;
           }
           const listHtml = (distributionRows || []).map(row => {
             const deltaClass = row.delta > 0 ? 'pos' : row.delta < 0 ? 'neg' : 'neu';
@@ -4867,8 +4913,9 @@
               : '';
             return `
               <div class="autoplan-distribution-item">
-                <span><strong>${escapeHtml(row.name)}</strong> ${row.unavailableReason ? '' : `${row.plannedHours}h / Soll ${row.targetHours}h`}
+                <span><strong>${escapeHtml(row.name)}</strong> ${row.unavailableReason ? '' : `${row.plannedHours}h / Soll ${row.targetHours}h / ${Number(row.workedDaysCount || 0)} Tage`}
                   ${absenceHint}
+                  <div class="small" style="color:#dc2626; font-weight:800;">Vorwochen-Saldo: ${row.historyDeltaHours >= 0 ? '+' : ''}${row.historyDeltaHours}h</div>
                   <div class="small muted" style="margin-top:4px;">${escapeHtml(row.name)}: ${escapeHtml(row.workedDaysText || 'Keine Arbeitstage')}</div>
                   <span class="autoplan-shift-badges">
                     ${shiftBadges || '<span class="autoplan-shift-badge">Keine Schichtzuordnung</span>'}
@@ -4994,6 +5041,12 @@
           slotCounts[day][shift.key] = Math.max(1, (state.schedule[day][shift.key] || ['']).length);
         });
       });
+      const configuredSlotCount = DAYS.reduce((sum, day) =>
+        sum + SHIFTS.reduce((inner, shift) => inner + Math.max(1, Number(slotCounts?.[day]?.[shift.key]) || 1), 0),
+      0);
+      const { optimalShifts } = getOptimalShiftSummary();
+      const intentionalShiftVolumeDelta = configuredSlotCount - Number(optimalShifts || 0);
+      const enforceHardDeltaLimit = intentionalShiftVolumeDelta === 0;
 
       function makeScheduleWithSlots() {
         const s = {};
@@ -5339,7 +5392,7 @@
         penalty += validation.summary.earlyAfterNightViolations * 600;
         penalty += validation.summary.tooManyNightMembers * 120;
         const maxAbsDeltaAttempt = deltaList.length ? Math.max(...deltaList.map(value => Math.abs(value))) : 0;
-        const isStrictValid = maxAbsDeltaAttempt <= hardDeltaLimit;
+        const isStrictValid = !enforceHardDeltaLimit || maxAbsDeltaAttempt <= hardDeltaLimit;
 
         if (isStrictValid && penalty < bestStrictPenalty) {
           bestStrictPenalty = penalty;
@@ -5356,8 +5409,7 @@
       const selectedScheduleBase = bestStrictSchedule || bestSchedule;
       const selectedSchedule = rebalanceScheduleExtremes(selectedScheduleBase);
       const finalBalance = evaluateScheduleBalance(selectedSchedule);
-      const usedFallbackSchedule = finalBalance.maxAbsDelta > hardDeltaLimit;
-      state.schedule = selectedSchedule;
+      const usedFallbackSchedule = enforceHardDeltaLimit && finalBalance.maxAbsDelta > hardDeltaLimit;
       const holidayInfo = holidaySkipDays.size
         ? ` Feiertag(e) ausgelassen: ${[...holidaySkipDays].map(day => day.slice(0,2)).join(', ')}.`
         : '';
@@ -5378,14 +5430,20 @@
       const supportHint = uncoveredSlots > 0
         ? ` ⚠️ ${uncoveredSlots} Slot(s) konnten nicht vollständig besetzt werden. Hinweis: Aushilfe ins Kern-Team integrieren oder manuell eintragen.`
         : '';
-      const strictHint = usedFallbackSchedule
+      const strictHint = !enforceHardDeltaLimit
+        ? ` ℹ️ Harte Fairness-Grenze ±${hardDeltaLimit}h deaktiviert (bewusst ${intentionalShiftVolumeDelta > 0 ? 'mehr' : 'weniger'} Schichten als Optimalwert geplant: ${configuredSlotCount}/${optimalShifts}).`
+        : usedFallbackSchedule
         ? ` ⚠️ Kein Vorschlag innerhalb ±${hardDeltaLimit}h für alle Mitarbeitenden gefunden (harte Regeln/Slots begrenzen). Beste Notfall-Variante verwendet.`
         : ` ✅ Harte Fairness-Grenze ±${hardDeltaLimit}h eingehalten.`;
+      if (usedFallbackSchedule) {
+        return { success: false, reason: 'strict_delta_not_found' };
+      }
+      state.schedule = selectedSchedule;
       state.autoInfo = '⚡ Automatisch erzeugt am ' + new Date().toLocaleString('de-DE') + ' (nur Kern-Team). Faire Verteilung, Schichtrotation für Spät/Nacht aktiv, Soll-Stunden gewichtet optimiert (weiche Regeln).' + strictHint + holidayInfo + nightInfo + fairnessInfo + supportHint;
       autosave();
       render();
       const weekDateStrings = weekDates.map(date => date.toISOString().slice(0, 10));
-      const distributionRows = buildAutoPlanDistributionLines(coreTeamStaff, selectedSchedule, effectiveTargetByName, weekDateStrings);
+      const distributionRows = buildAutoPlanDistributionLines(coreTeamStaff, selectedSchedule, effectiveTargetByName, weekDateStrings, historicalDeltaByNameKey);
       return {
         success: true,
         distributionRows,
@@ -5396,15 +5454,20 @@
     async function generateAutoSchedule() {
       let attempt = 0;
       const decisionModal = createAutoPlanDecisionModal();
+      let strictFailureCount = 0;
 
       try {
-        while (attempt < 12) {
+        while (attempt < 99) {
           attempt += 1;
           decisionModal.setBusy(true);
           await new Promise(resolve => setTimeout(resolve, 0));
           const run = generateAutoScheduleOnce();
           decisionModal.setBusy(false);
           if (!run?.success) {
+            if (run?.reason === 'strict_delta_not_found') {
+              strictFailureCount += 1;
+              continue;
+            }
             decisionModal.close();
             return;
           }
@@ -5422,7 +5485,13 @@
         }
 
         decisionModal.close();
-        void showAppAlert('Maximale Anzahl an Neuversuchen erreicht. Letzter Auto-Plan bleibt aktiv.', 'Auto-Plan');
+        if (strictFailureCount > 0) {
+          state.autoInfo = `⚠️ Auto-Plan abgebrochen: Nach ${strictFailureCount} Versuch${strictFailureCount === 1 ? '' : 'en'} keine faire Verteilung innerhalb ±4h gefunden. Bitte Kern-Team/Verfügbarkeit anpassen.`;
+          render();
+          void showAppAlert(`Kein fairer Vorschlag innerhalb ±4h gefunden (${strictFailureCount} Versuche). Bitte Kern-Team/Verfügbarkeit anpassen.`, 'Auto-Plan');
+        } else {
+          void showAppAlert('Maximale Anzahl an Neuversuchen erreicht. Letzter Auto-Plan bleibt aktiv.', 'Auto-Plan');
+        }
       } catch (error) {
         decisionModal.close();
         throw error;
@@ -6528,7 +6597,15 @@
 
     function renderMeta() {
       document.getElementById('weekLabel').value = state.weekLabel;
-      document.getElementById('weekStartDate').value = state.weekStartDate;
+      const weekStartDateInput = document.getElementById('weekStartDate');
+      const weekStartDateWrap = document.getElementById('weekStartDateWrap');
+      const showDatePlaceholder = !!state.weekStartDateUiEmpty;
+      if (weekStartDateInput) {
+        weekStartDateInput.value = showDatePlaceholder ? '' : state.weekStartDate;
+      }
+      if (weekStartDateWrap) {
+        weekStartDateWrap.classList.toggle('is-empty', showDatePlaceholder);
+      }
       document.getElementById('savedAt').textContent = state.savedAt || 'Noch nicht gespeichert';
       updateWeeklyShiftCounter();
       const autoInfo = document.getElementById('autoInfo');
@@ -6614,8 +6691,13 @@
           const workedDays = DAYS.filter(day =>
             SHIFTS.some(shift => (schedule?.[day]?.[shift.key] || []).some(token => isSameMemberToken(member, token)))
           );
+          const plannedHours = DAYS.reduce((sum, day) => sum + getAssignedHoursForDay(schedule, day, member), 0);
+          const targetHours = getMemberEffectiveTargetHours(member);
           return {
             name: member.name,
+            plannedHours: Math.round(plannedHours * 10) / 10,
+            targetHours: Math.round(targetHours * 10) / 10,
+            workedDaysCount: workedDays.length,
             workedDaysText: workedDays.length ? workedDays.join(', ') : 'Keine Arbeitstage',
             ...getShiftDistributionForMember(member, schedule),
           };
@@ -6724,7 +6806,7 @@
                         return `
                           <div class="week-shift-distribution-entry">
                             <div class="week-shift-distribution-head">
-                              <span class="week-shift-distribution-name">${escapeHtml(row.name)}</span>
+                              <span class="week-shift-distribution-name">${escapeHtml(row.name)} ${row.plannedHours}h / Soll ${row.targetHours}h / ${Number(row.workedDaysCount || 0)} Tage</span>
                               ${row.hasLateWarning ? `<span class="shift-late-warning">⚠️ ${row.lateCount}x Spät</span>` : ''}
                             </div>
                             <div class="week-shift-distribution-badges">
@@ -8301,7 +8383,10 @@
         const scopeLabel = summary.scope === 'all_staff' ? 'alle verfügbaren Mitarbeiter' : 'verfügbares Kern-Team';
         calcHint.textContent = `Automatische Zielberechnung (${scopeLabel}): ${summary.baseStaffCount} MA · ${summary.totalWeeklyHours}h gesamt ÷ Ø ${summary.avgShiftHours || 0}h pro Schicht = ${summary.optimalShifts} optimale Schichten/Woche.`;
       }
-      list.innerHTML = SHIFTS.map((shift, index) => `
+      list.innerHTML = SHIFTS.map((shift, index) => {
+        const baseAutoHours = calculateShiftHoursFromTimeRange(shift.time);
+        const baseHours = baseAutoHours === null ? (Number(shift.hours) || 0) : baseAutoHours;
+        return `
         <div class="shift-config-row" data-shift-index="${index}">
           <label>Name
             <input type="text" data-shift-field="label" value="${escapeHtml(shift.label)}">
@@ -8309,8 +8394,8 @@
           <label>Zeit
             <input type="text" data-shift-field="time" value="${escapeHtml(shift.time)}" placeholder="z.B. 10:00-18:00">
           </label>
-          <label>Stunden
-            <input type="number" data-shift-field="hours" min="0" step="0.5" value="${Number(shift.hours) || 0}">
+          <label>Stunden (auto)
+            <input type="number" data-shift-field="hours" min="0" step="0.5" value="${baseHours}" readonly>
           </label>
           <button data-shift-remove="${index}" ${SHIFTS.length <= 1 ? 'disabled' : ''}>✕</button>
         </div>
@@ -8330,12 +8415,16 @@
                 <label>Zeit
                   <input type="text" data-shift-exception-time="${index}" value="${escapeHtml(data?.time || '')}" placeholder="z.B. 10:00-18:00">
                 </label>
+                <label>Stunden (auto)
+                  <input type="number" data-shift-exception-hours="${index}" min="0" step="0.5" value="${calculateShiftHoursFromTimeRange(data?.time || '') ?? (Number(data?.hours) || baseHours)}" readonly>
+                </label>
                 <button type="button" class="shift-exception-remove" data-shift-exception-remove="${index}">✕</button>
               </div>
             `).join('')}
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
 
       list.querySelectorAll('input[data-shift-field]').forEach(input => {
         input.addEventListener('change', (e) => {
@@ -8368,6 +8457,20 @@
           renderStatsWeekList();
         });
       });
+      // Live auto-hours preview while typing base shift time.
+      list.querySelectorAll('input[data-shift-field="time"]').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const row = e.target.closest('[data-shift-index]');
+          if (!row) return;
+          const idx = Number(row.dataset.shiftIndex);
+          if (!SHIFTS[idx]) return;
+          const previewHours = calculateShiftHoursFromTimeRange(String(e.target.value || '').trim());
+          const hoursInput = row.querySelector('input[data-shift-field="hours"]');
+          if (hoursInput && previewHours !== null) {
+            hoursInput.value = String(previewHours);
+          }
+        });
+      });
 
       const persistShiftExceptions = (idx) => {
         const listEl = list.querySelector(`[data-shift-exception-list="${idx}"]`);
@@ -8378,9 +8481,12 @@
           const time = String(item.querySelector(`[data-shift-exception-time="${idx}"]`)?.value || '').trim();
           if (!WEEKDAY_OPTIONS.includes(day) || !time) return;
           const autoHours = calculateShiftHoursFromTimeRange(time);
+          const hoursInput = item.querySelector(`[data-shift-exception-hours="${idx}"]`);
+          const resolvedHours = autoHours === null ? (SHIFTS[idx].hours || 0) : autoHours;
+          if (hoursInput) hoursInput.value = String(resolvedHours);
           nextOverrides[day] = {
             time,
-            hours: autoHours === null ? (SHIFTS[idx].hours || 0) : autoHours,
+            hours: resolvedHours,
           };
         });
         SHIFTS[idx].dayOverrides = nextOverrides;
@@ -8414,6 +8520,9 @@
             <label>Zeit
               <input type="text" data-shift-exception-time="${idx}" value="${escapeHtml(getShiftTimeForDay(SHIFTS[idx], nextDay))}" placeholder="z.B. 10:00-18:00">
             </label>
+            <label>Stunden (auto)
+              <input type="number" data-shift-exception-hours="${idx}" min="0" step="0.5" value="${calculateShiftHoursFromTimeRange(getShiftTimeForDay(SHIFTS[idx], nextDay)) ?? (SHIFTS[idx].hours || 0)}" readonly>
+            </label>
             <button type="button" class="shift-exception-remove" data-shift-exception-remove="${idx}">✕</button>
           `;
           listEl.appendChild(row);
@@ -8434,6 +8543,10 @@
         });
       });
       list.querySelectorAll('[data-shift-exception-time]').forEach(el => {
+        el.addEventListener('input', () => {
+          const idx = Number(el.dataset.shiftExceptionTime);
+          persistShiftExceptions(idx);
+        });
         el.addEventListener('change', () => {
           const idx = Number(el.dataset.shiftExceptionTime);
           persistShiftExceptions(idx);
@@ -8596,6 +8709,7 @@
       weekStartDateInput.addEventListener('change', async (e) => {
         const oldDate = state.weekStartDate;
         const newDate = e.target.value;
+        state.weekStartDateUiEmpty = false;
 
         // Check if date actually changed
         if (oldDate && oldDate !== newDate) {
