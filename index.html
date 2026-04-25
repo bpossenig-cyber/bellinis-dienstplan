@@ -489,11 +489,11 @@
       background: var(--cream);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 12px 14px;
+      padding: 14px 16px;
     }
 
     .week-day .day-name {
-      font-size: 13.8px;
+      font-size: 16.1px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -501,14 +501,14 @@
     }
 
     .week-day .day-date {
-      font-size: 17.2px;
+      font-size: 20.1px;
       font-weight: 700;
       margin-top: 4px;
       color: var(--text);
     }
     .day-duty-line {
       margin-top: 9px;
-      font-size: 11.9px;
+      font-size: 13.9px;
       line-height: 1.3;
       font-weight: 700;
       display: flex;
@@ -516,7 +516,7 @@
       gap: 2px;
     }
     .day-duty-line .duty-prefix {
-      font-size: 11.8px;
+      font-size: 13.8px;
       font-weight: 800;
       letter-spacing: 0.35px;
       opacity: 0.9;
@@ -579,7 +579,7 @@
       gap: 5px;
     }
     .week-absence-title {
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 800;
       letter-spacing: 0.35px;
       text-transform: uppercase;
@@ -587,14 +587,14 @@
       opacity: 0.9;
     }
     .week-absence-entry {
-      font-size: 12.2px;
+      font-size: 14.3px;
       line-height: 1.3;
       color: var(--text);
       font-weight: 700;
       opacity: 0.9;
     }
     .week-absence-empty {
-      font-size: 12.2px;
+      font-size: 14.3px;
       line-height: 1.3;
       color: var(--text);
       opacity: 0.62;
@@ -603,7 +603,7 @@
     }
 
     .week-absence-hint {
-      font-size: 12px;
+      font-size: 14px;
       line-height: 1.35;
       color: #b91c1c;
       font-weight: 700;
@@ -1375,6 +1375,8 @@
       background: #eef2ff;
       border-color: #c7d2fe;
       color: #1e3a8a;
+      font-size: 17.5px;
+      padding: 10px 20px;
     }
 
     #weeklyShiftCounter.counter-over {
@@ -2107,6 +2109,10 @@
       * { max-width: 100%; }
       body { font-size: 19.5px; }
       .container { padding: 10px; gap: 10px; }
+      .container, .top-grid, .card, .card-content, .tab-panel, .week-strip, .week-day, .mobile-days-grid, .mobile-day-card {
+        min-width: 0;
+        box-sizing: border-box;
+      }
       #holidayYearList { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
       /* Header kompakt */
@@ -2128,8 +2134,9 @@
       .week-strip { grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 8px; }
       .week-strip.week-strip-absence { grid-template-columns: 1fr; gap: 6px; }
       .week-day { padding: 7px 8px; border-radius: 8px; }
-      .week-day .day-name { font-size: 13px; }
-      .week-day .day-date { font-size: 15.6px; }
+      .week-day { padding: 8px 9px; border-radius: 8px; }
+      .week-day .day-name { font-size: 15.2px; }
+      .week-day .day-date { font-size: 18.3px; }
 
       /* Speicherkarte auf Mobile */
       .saved-badge { padding: 7px 10px; font-size: 16.3px; }
@@ -2139,12 +2146,36 @@
       /* Meta */
       .meta-row {
         grid-template-columns: 1fr;
-        gap: 8px;
+        gap: 14px;
         overflow-x: visible;
-        padding-bottom: 2px;
+        padding: 14px 0px;
       }
       .meta-row > div { min-width: 0; }
       .meta-export-desktop { display: none; }
+      .mobile-hide-label { display: none !important; }
+      .meta-reset-btn {
+        width: 100%;
+        text-align: center;
+      }
+
+      /* Auto-Plan Popup auf Mobile scrollbar */
+      .autoplan-decision-modal .modal-content {
+        width: calc(100vw - 16px);
+        max-height: calc(100vh - 16px);
+        display: flex;
+        flex-direction: column;
+      }
+      .autoplan-decision-body {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-right: 2px;
+      }
+      .autoplan-decision-actions {
+        position: sticky;
+        bottom: 0;
+        background: linear-gradient(180deg, rgba(248, 252, 249, 0.85) 0%, rgba(248, 252, 249, 1) 30%);
+        padding-top: 8px;
+      }
 
       /* Main Tabs — 1 Spalte auf Mobile */
       .header-bar {
@@ -2156,6 +2187,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        position: absolute;
         min-height: 52px !important;
         width: 52px;
         font-size: 31px;
@@ -2172,6 +2204,26 @@
       .mobile-header-dropdown .menu-action-btn {
         font-size: 20px !important;
         padding: 13px 14px;
+      }
+      .week-absence-summary,
+      .week-absence-section {
+        min-width: 0;
+      }
+      .week-absence-hint {
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+      .week-absence-link {
+        display: flex;
+        width: 100%;
+        max-width: 100%;
+        justify-content: flex-start;
+        border-radius: 12px;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        text-align: left;
       }
       .mobile-anchor-title {
         display: block;
@@ -2191,13 +2243,13 @@
         display: grid !important;
         grid-template-columns: 1fr !important;
         overflow: visible !important;
-        gap: 5px;
-        padding-bottom: 10px;
+        gap: 10px;
+        padding: 12px 0 14px;
       }
       .tabs::-webkit-scrollbar { display: none; }
       .tab-btn {
         white-space: nowrap;
-        padding: 9px 10px;
+        padding: 11px 10px;
         font-size: 16.2px;
         width: 100%;
         display: block;
@@ -2206,11 +2258,26 @@
       #autoBtn, #saveBtn {
         white-space: nowrap;
         font-size: 16.9px;
-        padding: 9px 10px;
+        padding: 11px 10px;
         grid-column: span 1;
         width: 100%;
       }
       #saveBtn { margin-left: 0 !important; }
+      .mobile-weekly-counter-row {
+        width: 100%;
+        margin: 14px 0 14px;
+      }
+      #weeklyShiftCounter,
+      #weeklyShiftCounter.counter-under,
+      #weeklyShiftCounter.counter-optimal,
+      #weeklyShiftCounter.counter-over {
+        width: 100% !important;
+        font-size: 17px !important;
+        text-align: center !important;
+        padding: 16px 24px !important;
+        margin-top: 6px;
+        margin-bottom: 6px;
+      }
 
       /* ── WOCHENPLAN MOBILE: Schicht-Tabs + 2-Spalten-Tage ── */
       .schedule-wrap { overflow-x: hidden; border: none; border-radius: 0; padding: 0; }
@@ -2257,9 +2324,10 @@
         margin-top: 2px;
         line-height: 1.1;
       }
-      .mobile-shift-tab.active.frueh1 { background: #166534; border-color: #166534; color: #fff; }
-      .mobile-shift-tab.active.frueh2 { background: #1a5c35; border-color: #1a5c35; color: #fff; }
-      .mobile-shift-tab.active.spaet  { background: #f97316; border-color: #f97316; color: #fff; }
+      .mobile-shift-tab.active.frueh1 { background: #bae6fd; border-color: #7dd3fc; color: #0c4a6e; }
+      .mobile-shift-tab.active.frueh2 { background: #fde68a; border-color: #facc15; color: #713f12; }
+      .mobile-shift-tab.active.spaet  { background: #fdba74; border-color: #fb923c; color: #7c2d12; }
+      .mobile-shift-tab.active.nacht  { background: #c7d2fe; border-color: #818cf8; color: #312e81; }
       .mobile-shift-tab.active {
         background: #16a34a;
         border-color: #16a34a;
@@ -2585,17 +2653,17 @@
             <input id="weekStartDate" type="date" />
           </div>
           <div>
-            <label for="weekLabel">Planname / Woche</label>
+            <label for="weekLabel" class="mobile-hide-label">Planname / Woche</label>
             <input id="weekLabel" type="text" placeholder="z. B. KW 18 · April 2025" />
           </div>
           <div>
-            <label>Kern-Team aktiv</label>
+            <label class="mobile-hide-label">Kern-Team aktiv</label>
             <div id="coreTeamAutoBox" class="meta-coreteam-box">
               <div id="coreTeamAutoHint" class="small muted">Kern-Team aktiv: 0/0</div>
             </div>
           </div>
           <div>
-            <label>Reset</label>
+            <label class="mobile-hide-label">Reset</label>
             <button id="resetBtn" class="meta-reset-btn">↺ Reset</button>
             <button id="installBtn" style="display:none;" class="gold">App installieren</button>
           </div>
@@ -3352,6 +3420,7 @@
       } else if (tabKey === 'plan') {
         renderSchedule();
       }
+      placeWeeklyShiftCounterForViewport();
     }
 
     function switchTabAndJumpToPanel(tabKey) {
@@ -3394,10 +3463,15 @@
         const rect = burgerBtn.getBoundingClientRect();
         const gap = 8;
         const viewportPadding = 8;
-        const right = Math.max(viewportPadding, window.innerWidth - rect.right);
+        const menuWidth = Math.min(380, Math.max(260, window.innerWidth - (viewportPadding * 2)));
+        const computedRight = Math.max(viewportPadding, window.innerWidth - rect.right);
+        const right = Math.min(window.innerWidth - menuWidth - viewportPadding, computedRight);
         const top = Math.min(rect.bottom + gap, window.innerHeight - 80);
-        menu.style.right = `${right}px`;
-        menu.style.top = `${top}px`;
+        menu.style.width = `${menuWidth}px`;
+        menu.style.maxWidth = `${menuWidth}px`;
+        menu.style.right = `${Math.max(viewportPadding, right)}px`;
+        menu.style.left = 'auto';
+        menu.style.top = `${Math.max(viewportPadding, top)}px`;
       }
       menu.classList.toggle('open', !!state.headerBurgerOpen);
       burgerBtn.setAttribute('aria-expanded', state.headerBurgerOpen ? 'true' : 'false');
@@ -3732,6 +3806,10 @@
 
     function syncCoreTeamAvailability() {
       let changed = false;
+      const stripAutoReplacementTag = (rawNotes) => String(rawNotes || '')
+        .replace(/\s*\[Auto-Ersatz[^\]]*\]\s*/g, ' ')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
       // Reset previously auto-promoted helpers first.
       state.staff.forEach(member => {
         if (!member?.autoCoreFromHelper) return;
@@ -3757,6 +3835,12 @@
         delete member.autoOriginalMaxDays;
         delete member.autoOriginalBlockedDays;
         delete member.autoOriginalShiftRestrictions;
+        delete member.autoCoreReplacementForId;
+        delete member.autoCoreReplacementForName;
+        const cleanedNotes = stripAutoReplacementTag(member.notes);
+        if (cleanedNotes !== String(member.notes || '').trim()) {
+          member.notes = cleanedNotes;
+        }
         member.autoCoreFromHelper = false;
         changed = true;
       });
@@ -3834,6 +3918,8 @@
           selectedHelper.blockedDays = coreBlockedDays;
           selectedHelper.shiftRestrictions = coreShiftRestrictions;
           syncMemberShiftRestrictions(selectedHelper);
+          selectedHelper.autoCoreReplacementForId = coreMember.id || '';
+          selectedHelper.autoCoreReplacementForName = coreMember.name || '';
           selectedHelper.notes = String(selectedHelper.notes || '').includes('[Auto-Ersatz]')
             ? selectedHelper.notes
             : `${selectedHelper.notes ? `${selectedHelper.notes} ` : ''}[Auto-Ersatz ${coreMember.name}: ${coreTarget}h/${coreMaxDays}T]`.trim();
@@ -4831,7 +4917,7 @@
       }
 
       const totalStaff = coreTeamStaff.length;
-      const absentStaff = coreTeamStaff.filter(isUnavailable).length;
+      const absentStaff = coreTeamStaff.filter(isUnavailableInCurrentWeek).length;
       const weekDates = getWeekDates(new Date(`${state.weekStartDate}T12:00:00`));
       const holidaySet = getKnownHolidayDateSet();
       const holidaySkipDays = new Set(
@@ -4847,7 +4933,7 @@
       // Begrenzt die Stunden-Toleranz, damit +/-8h nicht als "normal" durchgeht.
       const fairnessTolerancePct = Math.min(dynamicTolerancePct, 0.10);
 
-      const staff = coreTeamStaff.filter(member => !isUnavailable(member));
+      const staff = coreTeamStaff.filter(member => !isUnavailableInCurrentWeek(member));
       if (!staff.length) {
         state.autoInfo = '⚠️ Auto-Plan abgebrochen: Alle Kern-Team-Mitglieder sind aktuell in Urlaub oder Krankenstand.';
         render();
@@ -4862,7 +4948,21 @@
       }
 
       const shiftBandByKey = Object.fromEntries(SHIFTS.map(shift => [shift.key, getShiftVisualBand(shift)]));
-      const effectiveTargetByName = Object.fromEntries(staff.map(member => [member.name, getMemberEffectiveTargetHours(member)]));
+      const effectiveTargetByName = Object.fromEntries(staff.map(member => {
+        const baseTarget = getMemberEffectiveTargetHours(member);
+        const blocked = new Set(member?.blockedDays || []);
+        const candidateDays = DAYS.filter(day => !blocked.has(day));
+        const maxDaysRaw = Number(member?.maxDays);
+        const maxDays = Number.isFinite(maxDaysRaw)
+          ? Math.max(1, Math.min(DAYS.length, maxDaysRaw))
+          : Math.max(1, candidateDays.length);
+        const effectiveWorkDays = Math.max(1, Math.min(maxDays, candidateDays.length || maxDays));
+        const perWorkDayHours = baseTarget / effectiveWorkDays;
+        const holidayReductionDays = [...holidaySkipDays].filter(day => candidateDays.includes(day)).length;
+        const cappedHolidayReductionDays = Math.min(effectiveWorkDays, holidayReductionDays);
+        const adjustedTarget = Math.max(0, Math.round((baseTarget - cappedHolidayReductionDays * perWorkDayHours) * 10) / 10);
+        return [member.name, adjustedTarget];
+      }));
       const fairnessHistoryEntries = getRollingHistoryEntries(12);
       const historicalDeltaByNameKey = buildHistoricalDeltaMap(fairnessHistoryEntries);
       const fairnessCarryoverTolerance = 4;
@@ -6251,27 +6351,42 @@
       const avgShiftHours = shiftHours.length
         ? Math.round((shiftHours.reduce((sum, hours) => sum + hours, 0) / shiftHours.length) * 10) / 10
         : 0;
-      const optimalShifts = avgShiftHours > 0
+      const baseOptimalShifts = avgShiftHours > 0
         ? Math.max(0, Math.round(totalWeeklyHours / avgShiftHours))
         : 0;
+      const weekDates = getWeekDates(new Date(`${state.weekStartDate}T12:00:00`));
+      const holidaySet = getKnownHolidayDateSet();
+      const countedHolidayDays = weekDates.reduce((sum, date) => {
+        const dateStr = date.toISOString().slice(0, 10);
+        if (!holidaySet.has(dateStr)) return sum;
+        return sum + (isHolidayCounted(dateStr) ? 1 : 0);
+      }, 0);
+      const minHolidayReductionPerDay = SHIFTS.length;
+      const holidayShiftReduction = countedHolidayDays * minHolidayReductionPerDay;
+      const optimalShifts = Math.max(0, baseOptimalShifts - holidayShiftReduction);
       return {
         scope: useAllStaff ? 'all_staff' : 'core_team',
         baseStaffCount: baseStaff.length,
         totalWeeklyHours,
         avgShiftHours,
         optimalShifts,
+        holidayShiftReduction,
+        countedHolidayDays,
       };
     }
 
     function updateWeeklyShiftCounter() {
       const weeklyShiftCounter = document.getElementById('weeklyShiftCounter');
       if (!weeklyShiftCounter) return;
-      const { optimalShifts } = getOptimalShiftSummary();
+      const { optimalShifts, holidayShiftReduction, countedHolidayDays } = getOptimalShiftSummary();
       const assignedShifts = getAssignedShiftCount();
       const delta = assignedShifts - optimalShifts;
       const deltaText = delta === 0 ? 'optimal' : (delta > 0 ? `+${delta}` : `${delta}`);
       weeklyShiftCounter.textContent = `Schichten/Woche: ${assignedShifts}/${optimalShifts} (${deltaText})`;
-      weeklyShiftCounter.title = 'Optimalwert wird automatisch aus Mitarbeiterstunden und Schichtdauer berechnet';
+      const holidayHint = countedHolidayDays > 0
+        ? ` | Feiertagsreduktion: -${holidayShiftReduction} (${countedHolidayDays} Feiertag${countedHolidayDays === 1 ? '' : 'e'})`
+        : '';
+      weeklyShiftCounter.title = `Optimalwert wird automatisch aus Mitarbeiterstunden und Schichtdauer berechnet${holidayHint}`;
       weeklyShiftCounter.classList.remove('counter-optimal', 'counter-under', 'counter-over');
       weeklyShiftCounter.classList.add(delta === 0 ? 'counter-optimal' : delta < 0 ? 'counter-under' : 'counter-over');
       const prevCount = Number(weeklyShiftCounter.dataset.count || '0');
@@ -6280,6 +6395,41 @@
         setTimeout(() => weeklyShiftCounter.classList.remove('counter-bump'), 160);
       }
       weeklyShiftCounter.dataset.count = String(assignedShifts);
+      placeWeeklyShiftCounterForViewport();
+    }
+
+    function placeWeeklyShiftCounterForViewport() {
+      const weeklyShiftCounter = document.getElementById('weeklyShiftCounter');
+      const mainTabs = document.getElementById('mainTabs');
+      const autoBtn = document.getElementById('autoBtn');
+      const mobileSchedule = document.getElementById('mobileSchedule');
+      const planPanel = document.getElementById('tab-plan');
+      if (!weeklyShiftCounter || !mainTabs) return;
+      const isMobile = window.matchMedia('(max-width: 640px)').matches;
+      const planActive = !!planPanel?.classList.contains('active');
+
+      if (isMobile && planActive && mobileSchedule) {
+        let counterRow = mobileSchedule.querySelector('.mobile-weekly-counter-row');
+        if (!counterRow) {
+          counterRow = document.createElement('div');
+          counterRow.className = 'mobile-weekly-counter-row';
+        }
+        const shiftTabs = mobileSchedule.querySelector('.mobile-shift-tabs');
+        if (shiftTabs && counterRow.previousElementSibling !== shiftTabs) {
+          shiftTabs.insertAdjacentElement('afterend', counterRow);
+        } else if (!counterRow.parentElement) {
+          mobileSchedule.prepend(counterRow);
+        }
+        if (weeklyShiftCounter.parentElement !== counterRow) {
+          counterRow.appendChild(weeklyShiftCounter);
+        }
+        return;
+      }
+
+      if (weeklyShiftCounter.parentElement !== mainTabs) {
+        if (autoBtn) mainTabs.insertBefore(weeklyShiftCounter, autoBtn);
+        else mainTabs.appendChild(weeklyShiftCounter);
+      }
     }
 
     function renderMeta() {
@@ -6462,7 +6612,7 @@
                   ${vacationEntries.length
                     ? `
                       <div class="week-absence-hint">🔴 Hinweis: Urlaub reduziert die verfügbare Kern-Team-Kapazität im Auto-Plan.</div>
-                      <button type="button" class="week-absence-link" data-jump-to-staff="1">👥 Kern-Team jetzt bei Mitarbeiter anpassen</button>
+                      <button type="button" class="week-absence-link" data-jump-to-staff="1">👥 Kern-Team anpassen</button>
                     `
                     : ''}
                 </div>
@@ -6771,6 +6921,15 @@
         console.error('mobileSchedule container not found!');
         return;
       }
+      // Preserve weekly counter node across mobile re-renders:
+      // moving it out first prevents container.innerHTML from deleting it.
+      const weeklyShiftCounter = document.getElementById('weeklyShiftCounter');
+      const mainTabs = document.getElementById('mainTabs');
+      const autoBtn = document.getElementById('autoBtn');
+      if (weeklyShiftCounter && mainTabs && weeklyShiftCounter.closest('#mobileSchedule')) {
+        if (autoBtn) mainTabs.insertBefore(weeklyShiftCounter, autoBtn);
+        else mainTabs.appendChild(weeklyShiftCounter);
+      }
       container.innerHTML = '';
 
       const weekDates = getWeekDates(new Date(`${state.weekStartDate}T12:00:00`));
@@ -6792,6 +6951,7 @@
         tabBar.appendChild(btn);
       });
       container.appendChild(tabBar);
+      placeWeeklyShiftCounterForViewport();
 
       // Days grid for active shift
       const shift = SHIFTS.find(s => s.key === mobileActiveShift);
@@ -7467,8 +7627,15 @@
         return true;
       };
 
+      let suppressClickUntil = 0;
+      const shouldSuppressSyntheticClick = () => Date.now() < suppressClickUntil;
+
       dayButtons.forEach(btn => {
         btn.addEventListener('click', async (e) => {
+          if (shouldSuppressSyntheticClick()) {
+            e.preventDefault();
+            return;
+          }
           const dateStr = btn.dataset.date;
           if (e.shiftKey && selection.lastSelectedDate && selection.lastSelectedDate !== dateStr) {
             const start = new Date(`${selection.lastSelectedDate}T12:00:00`);
@@ -7521,6 +7688,9 @@
       dayButtons.forEach(btn => {
         btn.addEventListener('touchstart', (e) => {
           if (!e.touches?.length) return;
+          // Touch erzeugt oft zusätzlich ein synthetisches click-Event.
+          // Ohne Guard würde ein einzelner Tap sofort wieder zurücktoggeln.
+          suppressClickUntil = Date.now() + 450;
           startDrag(btn);
         }, { passive: true });
       });
@@ -8656,6 +8826,7 @@
       window.addEventListener('resize', () => {
         applyMobileMenuState();
         applyHeaderBurgerMenuState();
+        placeWeeklyShiftCounterForViewport();
       });
       applyMobileMenuState();
       applyHeaderBurgerMenuState();
