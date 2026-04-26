@@ -4728,7 +4728,7 @@
     function countBlockDaysByType(dates, type, holidaySet = getKnownHolidayDateSet()) {
       const normalizedDates = Array.isArray(dates) ? [...new Set(dates.filter(Boolean))] : [];
       if (!normalizedDates.length) return 0;
-      if (type !== 'urlaub') return normalizedDates.length;
+      if (type !== 'urlaub' && type !== 'wunschfrei') return normalizedDates.length;
       return normalizedDates.filter(dateStr => {
         const parsed = parseFlexibleDate(String(dateStr));
         if (!parsed || Number.isNaN(parsed.getTime())) return false;
@@ -4756,17 +4756,27 @@
             endDate: dates[dates.length - 1] || block?.endDate || '',
             days: dates.length || fallbackDays,
             dates,
+            shiftKey: String(block?.shiftKey || ''),
           };
         })
         .filter(Boolean);
     }
 
-    function getMemberDayAbsenceType(member, dateStr) {
+    function getMemberDayAbsenceType(member, dateStr, shiftKey = '') {
       if (!member || !dateStr) return null;
       const onVacation = (member.vacationBlocks || []).some(block => blockContainsDate(block, dateStr));
       if (onVacation) return 'urlaub';
       const onSick = (member.sickBlocks || []).some(block => blockContainsDate(block, dateStr));
       if (onSick) return 'krank';
+      const normalizedShiftKey = String(shiftKey || '').trim();
+      const onWishFree = (member.wunschfreiBlocks || []).some(block => {
+        if (!blockContainsDate(block, dateStr)) return false;
+        const blockShiftKey = String(block?.shiftKey || '').trim();
+        if (!blockShiftKey) return true; // Kein Schichtfilter => ganztägiges Wunschfrei.
+        if (!normalizedShiftKey) return true; // Allgemeine Tagesabfrage.
+        return blockShiftKey === normalizedShiftKey;
+      });
+      if (onWishFree) return 'wunschfrei';
       return null;
     }
 
@@ -4784,6 +4794,7 @@
         maxVacationDays: 0,
         vacationBlocks: [],
         sickBlocks: [],
+        wunschfreiBlocks: [],
         ...member,
       };
       normalized.maxVacationDays = 0;
@@ -4793,6 +4804,7 @@
         : null;
       normalized.vacationBlocks = normalizeBlocks(normalized.vacationBlocks);
       normalized.sickBlocks = normalizeBlocks(normalized.sickBlocks);
+      normalized.wunschfreiBlocks = normalizeBlocks(normalized.wunschfreiBlocks);
       syncMemberShiftRestrictions(normalized);
       // Legacy cleanup: keep only current explicit rule model.
       delete normalized.noFrueh;
@@ -5148,12 +5160,9 @@
         void showAppAlert('Alle Kern-Team-Mitglieder sind aktuell in Urlaub oder Krankenstand.', 'Auto-Plan');
         return { success: false };
       }
-      if (staff.length < 6) {
-        state.autoInfo = `⚠️ Auto-Plan abgebrochen: Kern-Team ist mit ${staff.length}/6 nicht voll besetzt. Bitte Aushilfe aktivieren.`;
-        render();
-        void showAppAlert(`Kern-Team ist mit ${staff.length}/6 nicht voll besetzt. Bitte Aushilfe 1 oder Aushilfe 2 aktivieren.`, 'Auto-Plan');
-        return { success: false };
-      }
+      const coreTeamCapacityHint = staff.length < 6
+        ? ` ⚠️ Kern-Team aktuell ${staff.length}/6 aktiv. Auto-Plan läuft trotzdem mit reduzierter Besetzung.`
+        : '';
 
       const shiftBandByKey = Object.fromEntries(SHIFTS.map(shift => [shift.key, getShiftVisualBand(shift)]));
       const effectiveTargetByName = Object.fromEntries(staff.map(member => {
@@ -5189,7 +5198,9 @@
       0);
       const { optimalShifts } = getOptimalShiftSummary();
       const intentionalShiftVolumeDelta = configuredSlotCount - Number(optimalShifts || 0);
-      const enforceHardDeltaLimit = intentionalShiftVolumeDelta === 0;
+      const requiredFullCoreTeam = 6;
+      const isCoreTeamUnderfilled = staff.length < requiredFullCoreTeam;
+      const enforceHardDeltaLimit = intentionalShiftVolumeDelta === 0 && !isCoreTeamUnderfilled;
 
       function makeScheduleWithSlots() {
         const s = {};
@@ -5242,7 +5253,7 @@
                     if (slots.includes(underMember.name)) return;
                     if ((underMember.blockedDays || []).includes(day)) return;
                     if (underMember.shiftRestrictions?.[shift.key]) return;
-                    if (getMemberDayAbsenceType(underMember, dayDateStr)) return;
+                    if (getMemberDayAbsenceType(underMember, dayDateStr, shift.key)) return;
                     const underWorkedDays = new Set(DAYS.filter(d => SHIFTS.some(s => (working?.[d]?.[s.key] || []).includes(underMember.name))));
                     if (!underWorkedDays.has(day) && underWorkedDays.size + 1 > Number(underMember.maxDays || 0)) return;
                     const hasOtherShiftToday = SHIFTS.some(otherShift => {
@@ -5371,7 +5382,7 @@
                 if (assignedToday.has(member.name)) return false;    // no double shift: always hard
                 if (shiftRulesFail(member, tracker)) return false;   // shift rules: always hard
                 if (shiftBand === 'spaet' && tracker.lateCount >= 3) return false; // Max. 3 Spätdienste hart
-                const absenceType = getMemberDayAbsenceType(member, dayDateStr);
+                const absenceType = getMemberDayAbsenceType(member, dayDateStr, shift.key);
                 if (absenceType) return false; // Urlaub/Krankenstand an diesem Tag: immer sperren
                 if (!relaxHours) {
                   const tolerance = tracker.targetHours * fairnessTolerancePct;
@@ -5574,7 +5585,9 @@
         ? ` ⚠️ ${uncoveredSlots} Slot(s) konnten nicht vollständig besetzt werden. Hinweis: Aushilfe ins Kern-Team integrieren oder manuell eintragen.`
         : '';
       const strictHint = !enforceHardDeltaLimit
-        ? ` ℹ️ Harte Fairness-Grenze ±${hardDeltaLimit}h deaktiviert (bewusst ${intentionalShiftVolumeDelta > 0 ? 'mehr' : 'weniger'} Schichten als Optimalwert geplant: ${configuredSlotCount}/${optimalShifts}).`
+        ? isCoreTeamUnderfilled
+        ? ` ℹ️ Harte Fairness-Grenze ±${hardDeltaLimit}h deaktiviert (Kern-Team nicht voll: ${staff.length}/${requiredFullCoreTeam}).`
+        : ` ℹ️ Harte Fairness-Grenze ±${hardDeltaLimit}h deaktiviert (bewusst ${intentionalShiftVolumeDelta > 0 ? 'mehr' : 'weniger'} Schichten als Optimalwert geplant: ${configuredSlotCount}/${optimalShifts}).`
         : usedFallbackSchedule
         ? ` ⚠️ Kein Vorschlag innerhalb ±${hardDeltaLimit}h für alle Mitarbeitenden gefunden (harte Regeln/Slots begrenzen). Beste Notfall-Variante verwendet.`
         : ` ✅ Harte Fairness-Grenze ±${hardDeltaLimit}h eingehalten.`;
@@ -5582,7 +5595,7 @@
         return { success: false, reason: 'strict_delta_not_found' };
       }
       state.schedule = selectedSchedule;
-      state.autoInfo = '⚡ Automatisch erzeugt am ' + new Date().toLocaleString('de-DE') + ' (nur Kern-Team). Faire Verteilung, Schichtrotation für Spät/Nacht aktiv, Soll-Stunden gewichtet optimiert (weiche Regeln).' + strictHint + holidayInfo + nightInfo + fairnessInfo + supportHint;
+      state.autoInfo = '⚡ Automatisch erzeugt am ' + new Date().toLocaleString('de-DE') + ' (nur Kern-Team). Faire Verteilung, Schichtrotation für Spät/Nacht aktiv, Soll-Stunden gewichtet optimiert (weiche Regeln).' + strictHint + holidayInfo + nightInfo + fairnessInfo + coreTeamCapacityHint + supportHint;
       autosave();
       render();
       const weekDateStrings = weekDates.map(date => date.toISOString().slice(0, 10));
@@ -7240,10 +7253,14 @@
           opt.value = member.name;
           const ruleViolation = hasRuleViolation(member);
           const isDouble = alreadyToday(member.name);
-          const absenceType = getMemberDayAbsenceType(member, dateStr);
+          const absenceType = getMemberDayAbsenceType(member, dateStr, shift.key);
           if (absenceType) {
             opt.textContent = member.name + (absenceType === 'urlaub' ? ' 🌴' : ' 🤒');
-            opt.title = absenceType === 'urlaub' ? 'Urlaubsblock an diesem Tag' : 'Krankenstand an diesem Tag';
+            opt.title = absenceType === 'urlaub'
+              ? 'Urlaubsblock an diesem Tag'
+              : absenceType === 'krank'
+              ? 'Krankenstand an diesem Tag'
+              : 'Wunschfrei an diesem Tag';
             opt.style.color = '#b45309';
           } else if (ruleViolation) {
             opt.textContent = member.name + ' 🚫';
@@ -7273,13 +7290,17 @@
         if (val) {
           const member = allAvailable.find(m => m.name === val);
           if (member) {
-            const absenceType = getMemberDayAbsenceType(member, dateStr);
+            const absenceType = getMemberDayAbsenceType(member, dateStr, shift.key);
             const violation = hasRuleViolation(member);
             const isDouble = alreadyToday(val);
             if (absenceType) {
               select.style.borderColor = '#f0c090';
               select.style.background = '#fff7ed';
-              select.title = absenceType === 'urlaub' ? '🌴 Urlaubsblock an diesem Tag' : '🤒 Krankenstand an diesem Tag';
+              select.title = absenceType === 'urlaub'
+                ? '🌴 Urlaubsblock an diesem Tag'
+                : absenceType === 'krank'
+                ? '🤒 Krankenstand an diesem Tag'
+                : '⭐ Wunschfrei an diesem Tag';
             } else if (violation) {
               select.style.borderColor = '#fca5a5';
               select.style.background = '#fff5f5';
@@ -7519,8 +7540,8 @@
               opt.value = m.name;
               const viol = hasRuleViolation(m);
               const dbl = alreadyToday(m.name);
-              const absenceType = getMemberDayAbsenceType(m, slotDateStr);
-              opt.textContent = m.name + (absenceType ? (absenceType === 'urlaub' ? ' 🌴' : ' 🤒') : viol ? ' 🚫' : dbl ? ' ⚡' : '');
+              const absenceType = getMemberDayAbsenceType(m, slotDateStr, shift.key);
+              opt.textContent = m.name + (absenceType ? (absenceType === 'urlaub' ? ' 🌴' : absenceType === 'krank' ? ' 🤒' : ' ⭐') : viol ? ' 🚫' : dbl ? ' ⚡' : '');
               if (absenceType) opt.style.color = '#b45309';
               else if (viol) opt.style.color = '#dc2626';
               else if (dbl) opt.style.color = '#d97706';
@@ -7536,7 +7557,7 @@
             if (val) {
               const m = allAvailable.find(m => m.name === val);
               if (m) {
-                const absenceType = getMemberDayAbsenceType(m, slotDateStr);
+                const absenceType = getMemberDayAbsenceType(m, slotDateStr, shift.key);
                 if (absenceType) { sel.style.borderColor='#f0c090'; sel.style.background='#fff7ed'; }
                 else if (hasRuleViolation(m)) { sel.style.borderColor='#fca5a5'; sel.style.background='#fff5f5'; }
                 else if (alreadyToday(val)) { sel.style.borderColor='#fcd34d'; sel.style.background='#fffbeb'; }
@@ -7714,9 +7735,33 @@
     }
 
     function openVacationBlockModal(member, type) {
-      const title = type === 'urlaub' ? '🌴 Urlaubsblöcke' : '🤒 Krankheitstage';
-      const blocks = type === 'urlaub' ? member.vacationBlocks : member.sickBlocks;
-      const blockStyle = type === 'urlaub' ? 'background:#e8f5ec; border-color:#7dbf8e; color:#166534;' : 'background:#fff5f5; border-color:#fca5a5; color:#dc2626;';
+      const modalTypeConfig = {
+        urlaub: {
+          title: '🌴 Urlaubsblöcke',
+          listTitle: 'Urlaubsblöcke',
+          blockLabel: 'Urlaubs',
+          blockStyle: 'background:#e8f5ec; border-color:#7dbf8e; color:#166534;',
+          blocks: member.vacationBlocks
+        },
+        krank: {
+          title: '🤒 Krankheitstage',
+          listTitle: 'Krankenstandsblöcke',
+          blockLabel: 'Krankenstands',
+          blockStyle: 'background:#fff5f5; border-color:#fca5a5; color:#dc2626;',
+          blocks: member.sickBlocks
+        },
+        wunschfrei: {
+          title: '⭐ Wunschfrei-Blöcke',
+          listTitle: 'Wunschfrei-Blöcke',
+          blockLabel: 'Wunschfrei',
+          blockStyle: 'background:#fff7ed; border-color:#fdba74; color:#9a3412;',
+          blocks: member.wunschfreiBlocks
+        }
+      };
+      const cfg = modalTypeConfig[type] || modalTypeConfig.urlaub;
+      const title = cfg.title;
+      const blocks = cfg.blocks;
+      const blockStyle = cfg.blockStyle;
       const holidaySet = getKnownHolidayDateSet();
 
       const modal = document.createElement('div');
@@ -7730,7 +7775,7 @@
           <div class="modal-body vacation-modal-body">
             <div class="calendar-wrapper"></div>
             <div class="blocks-list vacation-blocks-list">
-              <h4 style="margin-top:0; font-size:14px;">${type === 'urlaub' ? 'Urlaubsblöcke' : 'Krankenstandsblöcke'}</h4>
+              <h4 style="margin-top:0; font-size:14px;">${cfg.listTitle}</h4>
               <div class="blocks-container" style="display:grid; gap:8px; max-height:400px; overflow-y:auto;"></div>
               <div style="display:grid; gap:8px; margin-top:12px;">
                 <button type="button" class="save-block-btn" style="width:100%; padding:10px; background:var(--accent); color:#fff; border:none; border-radius:6px; font-weight:700; cursor:pointer; font-size:12px;">💾 Änderungen speichern</button>
@@ -7746,8 +7791,9 @@
       // Render calendar for first block or new block
       const calendarWrapper = modal.querySelector('.calendar-wrapper');
       const blocksContainer = modal.querySelector('.blocks-container');
-      let currentSelection = { startDate: null, endDate: null, days: 0, selectedDates: [], editingIndex: null, lastSelectedDate: null };
+      let currentSelection = { startDate: null, endDate: null, days: 0, selectedDates: [], editingIndex: null, lastSelectedDate: null, shiftKey: '' };
       let currentMonthOffset = 0;
+      let shiftFilterSelect = null;
       
       function renderCalendar() {
         renderBlockCalendar(calendarWrapper, type, currentSelection, currentMonthOffset);
@@ -7763,11 +7809,13 @@
           days: getBlockDaysForType(block, type, holidaySet),
           selectedDates: normalizedDates,
           editingIndex: idx,
-          lastSelectedDate: normalizedDates[normalizedDates.length - 1] || null
+          lastSelectedDate: normalizedDates[normalizedDates.length - 1] || null,
+          shiftKey: String(block?.shiftKey || ''),
         };
         const startDate = new Date(block.startDate);
         currentMonthOffset = (startDate.getFullYear() - new Date().getFullYear()) * 12 + startDate.getMonth() - new Date().getMonth();
         renderCalendar();
+        if (shiftFilterSelect) shiftFilterSelect.value = currentSelection.shiftKey || '';
       };
 
       const renderBlocksPanel = () => {
@@ -7781,6 +7829,7 @@
                 </div>
                 <div style="font-size:13px; margin-top:4px;">${getBlockDaysForType(block, type, holidaySet)} Tage</div>
                 <div style="font-size:11px; color:rgba(0,0,0,0.6); margin-top:2px;">${block.startDate} bis ${block.endDate}</div>
+                ${type === 'wunschfrei' ? `<div style="font-size:11px; margin-top:2px; color:#7c2d12;">Schicht: ${escapeHtml(getShiftLabelByKey(block.shiftKey, 'Alle Schichten'))}</div>` : ''}
               </div>
             `).join('');
 
@@ -7799,11 +7848,11 @@
             e.stopPropagation();
             const idx = Number(btn.dataset.index);
             if (Number.isNaN(idx) || !blocks[idx]) return;
-            if (!await confirmDeleteAction(`${type === 'urlaub' ? 'Urlaubs' : 'Krankenstands'}-Block wirklich löschen?`)) return;
-            pushDeleteUndoSnapshot(`${type === 'urlaub' ? 'Urlaubs' : 'Krankenstands'}-Block gelöscht (${member.name})`, { staff: state.staff });
+            if (!await confirmDeleteAction(`${cfg.blockLabel}-Block wirklich löschen?`)) return;
+            pushDeleteUndoSnapshot(`${cfg.blockLabel}-Block gelöscht (${member.name})`, { staff: state.staff });
             blocks.splice(idx, 1);
             if (currentSelection.editingIndex === idx) {
-              currentSelection = { startDate: null, endDate: null, days: 0, selectedDates: [], editingIndex: null, lastSelectedDate: null };
+              currentSelection = { startDate: null, endDate: null, days: 0, selectedDates: [], editingIndex: null, lastSelectedDate: null, shiftKey: '' };
             } else if (currentSelection.editingIndex !== null && currentSelection.editingIndex > idx) {
               currentSelection.editingIndex -= 1;
             }
@@ -7811,9 +7860,31 @@
             render();
             renderBlocksPanel();
             renderCalendar();
+            if (shiftFilterSelect) shiftFilterSelect.value = currentSelection.shiftKey || '';
           });
         });
       };
+
+      if (type === 'wunschfrei') {
+        const controls = modal.querySelector('.blocks-list');
+        if (controls) {
+          const shiftFilterWrap = document.createElement('div');
+          shiftFilterWrap.style.cssText = 'display:grid; gap:4px; margin-bottom:8px;';
+          shiftFilterWrap.innerHTML = `
+            <label style="margin:0; font-size:12px;">Schicht-Sperre für diesen Block</label>
+            <select class="wunschfrei-shift-filter" style="font-size:12px; min-height:34px;">
+              <option value="">Alle Schichten (ganztägig)</option>
+              ${SHIFTS.map(shift => `<option value="${escapeHtml(shift.key)}">${escapeHtml(getShiftLabelByKey(shift.key, shift.label))}</option>`).join('')}
+            </select>
+          `;
+          controls.insertBefore(shiftFilterWrap, controls.querySelector('.blocks-container'));
+          shiftFilterSelect = shiftFilterWrap.querySelector('.wunschfrei-shift-filter');
+          shiftFilterSelect.value = currentSelection.shiftKey || '';
+          shiftFilterSelect.addEventListener('change', () => {
+            currentSelection.shiftKey = String(shiftFilterSelect.value || '');
+          });
+        }
+      }
 
       renderBlocksPanel();
       renderCalendar();
@@ -7828,7 +7899,8 @@
               startDate: finalDates[0],
               endDate: finalDates[finalDates.length - 1],
               days: countedDays,
-              dates: [...finalDates]
+              dates: [...finalDates],
+              shiftKey: type === 'wunschfrei' ? String(currentSelection.shiftKey || '') : ''
             };
           } else {
             // Add new block
@@ -7836,7 +7908,8 @@
               startDate: finalDates[0],
               endDate: finalDates[finalDates.length - 1],
               days: countedDays,
-              dates: [...finalDates]
+              dates: [...finalDates],
+              shiftKey: type === 'wunschfrei' ? String(currentSelection.shiftKey || '') : ''
             });
             currentSelection.editingIndex = blocks.length - 1;
           }
@@ -7851,7 +7924,8 @@
 
       modal.querySelector('.save-block-btn').addEventListener('click', saveCurrentSelection);
       modal.querySelector('.reset-selection-btn').addEventListener('click', () => {
-        currentSelection = { startDate: null, endDate: null, days: 0, selectedDates: [], editingIndex: null, lastSelectedDate: null };
+        currentSelection = { startDate: null, endDate: null, days: 0, selectedDates: [], editingIndex: null, lastSelectedDate: null, shiftKey: '' };
+        if (shiftFilterSelect) shiftFilterSelect.value = '';
         renderCalendar();
       });
 
@@ -7881,13 +7955,18 @@
             <div class="calendar-month" data-month="1"></div>
           </div>
           <div style="margin-top:12px; padding:10px; background:var(--cream); border-radius:6px; text-align:center;">
-            <div style="font-size:12px; color:var(--muted);">${type === 'urlaub' ? 'Gesamt Urlaub' : 'Gesamt Tage'}</div>
+            <div style="font-size:12px; color:var(--muted);">${type === 'urlaub' ? 'Gesamt Urlaub' : type === 'wunschfrei' ? 'Gesamt Wunschfrei' : 'Gesamt Tage'}</div>
             <div style="font-size:24px; font-weight:700; color:var(--text);" class="days-count">${selection.days}</div>
             <div style="font-size:11px; color:var(--muted);">Tage</div>
           </div>
           <div style="margin-top:8px; font-size:11px; color:var(--muted); text-align:center;">
             Desktop: Shift + Klick für Bereichsauswahl · Mobile: mit einem Finger über Tage wischen.
           </div>
+          ${(type === 'urlaub' || type === 'wunschfrei') ? `
+          <div style="margin-top:6px; font-size:11px; color:#92400e; text-align:center; font-weight:700;">
+            Hinweis: Sonntage und Feiertage werden nicht als Tage gezählt.
+          </div>
+          ` : ''}
         </div>
       `;
 
@@ -8157,6 +8236,7 @@
         member.maxVacationDays = 0;
         if (!Array.isArray(member.vacationBlocks)) member.vacationBlocks = [];
         if (!Array.isArray(member.sickBlocks)) member.sickBlocks = [];
+        if (!Array.isArray(member.wunschfreiBlocks)) member.wunschfreiBlocks = [];
 
         const row = document.createElement('div');
         row.className = 'staff-item';
@@ -8331,6 +8411,31 @@
           autosave(); render();
         });
         row.appendChild(vacationPanel);
+
+        const totalWunschfreiDays = member.wunschfreiBlocks.reduce((sum, block) => sum + getBlockDaysForType(block, 'wunschfrei'), 0);
+        const wunschfreiPanel = document.createElement('div');
+        wunschfreiPanel.className = 'staff-vacation-panel';
+        wunschfreiPanel.style.marginTop = '8px';
+        wunschfreiPanel.innerHTML = `
+          <div class="staff-vacation-head">
+            <label style="margin:0;">⭐ Wunschfrei-Kalender</label>
+            <div class="staff-vacation-actions">
+              <button type="button" class="staff-wunschfrei-btn" style="padding:6px 12px; font-size:13px; background:#fff7ed; color:#9a3412; border:1.5px solid #fdba74;">
+                📅 Blöcke hinzufügen
+              </button>
+            </div>
+          </div>
+          <div class="staff-vacation-info">${member.wunschfreiBlocks.length} Block${member.wunschfreiBlocks.length === 1 ? '' : 'e'} · ${totalWunschfreiDays} Tage gesamt</div>
+          <div class="staff-vacation-badges">
+            ${member.wunschfreiBlocks.length === 0
+              ? '<span class="staff-vacation-empty">Noch keine Wunschfrei-Blöcke hinterlegt</span>'
+              : member.wunschfreiBlocks.map((block, idx) => `<span class="staff-vacation-badge" style="background:#fff7ed; border-color:#fdba74; color:#9a3412;">${idx + 1}. Wunschfrei ${getBlockDaysForType(block, 'wunschfrei')} Tage · ${formatDateForUi(block.startDate)} bis ${formatDateForUi(block.endDate)} · ${escapeHtml(getShiftLabelByKey(block.shiftKey, 'Alle Schichten'))}</span>`).join('')}
+          </div>
+        `;
+        wunschfreiPanel.querySelector('.staff-wunschfrei-btn').addEventListener('click', () => {
+          openVacationBlockModal(member, 'wunschfrei');
+        });
+        row.appendChild(wunschfreiPanel);
 
         const targetContainer = isAushilfeMember(member) ? helperContainer : regularContainer;
         targetContainer.appendChild(row);
@@ -9216,7 +9321,8 @@
           shiftRestrictions,
           blockedDays,
           vacationBlocks: [],
-          sickBlocks: []
+          sickBlocks: [],
+          wunschfreiBlocks: []
         });
         state.staff.push(newMember);
         saveStaff();  // persist immediately so Auto-Plan and render() can't lose this member
